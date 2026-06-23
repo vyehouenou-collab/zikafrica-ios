@@ -1,0 +1,698 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BE20E9DF2FD9186B00CCB775 /* ZikAfricaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20E9DE2FD9186B00CCB775 /* ZikAfricaApp.swift */; };
+		BE20E9E12FD9186B00CCB775 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20E9E02FD9186B00CCB775 /* ContentView.swift */; };
+		BE20E9E32FD9187100CCB775 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BE20E9E22FD9187100CCB775 /* Assets.xcassets */; };
+		BE20E9E62FD9187100CCB775 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BE20E9E52FD9187100CCB775 /* Preview Assets.xcassets */; };
+		BE20E9F02FD9187100CCB775 /* ZikAfricaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20E9EF2FD9187100CCB775 /* ZikAfricaTests.swift */; };
+		BE20E9FA2FD9187100CCB775 /* ZikAfricaUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20E9F92FD9187100CCB775 /* ZikAfricaUITests.swift */; };
+		BE20E9FC2FD9187100CCB775 /* ZikAfricaUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20E9FB2FD9187100CCB775 /* ZikAfricaUITestsLaunchTests.swift */; };
+		BE20EA092FD922DA00CCB775 /* QRCodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20EA082FD922DA00CCB775 /* QRCodeScannerView.swift */; };
+		BE20EA0B2FD9319F00CCB775 /* Track.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20EA0A2FD9319F00CCB775 /* Track.swift */; };
+		BE20EA0D2FD931E200CCB775 /* TrackRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20EA0C2FD931E200CCB775 /* TrackRepository.swift */; };
+		BE20EA0F2FD9379E00CCB775 /* RevealView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20EA0E2FD9379E00CCB775 /* RevealView.swift */; };
+		BE20EA112FD93A1300CCB775 /* tracks.json in Resources */ = {isa = PBXBuildFile; fileRef = BE20EA102FD93A1300CCB775 /* tracks.json */; };
+		BE20EA132FD9C2ED00CCB775 /* RulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20EA122FD9C2ED00CCB775 /* RulesView.swift */; };
+		BE20EA152FD9C62800CCB775 /* Platform.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20EA142FD9C62800CCB775 /* Platform.swift */; };
+		BE20EA172FD9C89C00CCB775 /* MusicAppDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20EA162FD9C89C00CCB775 /* MusicAppDetector.swift */; };
+		BE20EA1A2FD9CC1B00CCB775 /* PlatformChoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20EA192FD9CC1B00CCB775 /* PlatformChoiceView.swift */; };
+		BE20EA1C2FD9CDF500CCB775 /* MusicPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20EA1B2FD9CDF500CCB775 /* MusicPlayerManager.swift */; };
+		BE6BD4762FDDA50D008AF515 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE6BD4752FDDA50D008AF515 /* SplashView.swift */; };
+		C00100012FE0000000000001 /* ConnectedGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00100022FE0000000000002 /* ConnectedGame.swift */; };
+		C00100032FE0000000000003 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C00100042FE0000000000004 /* GoogleService-Info.plist */; };
+		C00100062FE0000000000006 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C00100112FE0000000000011 /* FirebaseAuth */; };
+		C00100072FE0000000000007 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C00100122FE0000000000012 /* FirebaseFirestore */; };
+		C00100132FE0000000000013 /* AppleMusicFullTrackPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00100142FE0000000000014 /* AppleMusicFullTrackPlayer.swift */; };
+		C00100152FE0000000000015 /* SpotifyFullTrackPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00100162FE0000000000016 /* SpotifyFullTrackPlayer.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BE20E9EC2FD9187100CCB775 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BE20E9D32FD9186B00CCB775 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BE20E9DA2FD9186B00CCB775;
+			remoteInfo = ZikAfrica;
+		};
+		BE20E9F62FD9187100CCB775 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BE20E9D32FD9186B00CCB775 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BE20E9DA2FD9186B00CCB775;
+			remoteInfo = ZikAfrica;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		BE20E9DB2FD9186B00CCB775 /* ZikAfrica.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZikAfrica.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BE20E9DE2FD9186B00CCB775 /* ZikAfricaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZikAfricaApp.swift; sourceTree = "<group>"; };
+		BE20E9E02FD9186B00CCB775 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		BE20E9E22FD9187100CCB775 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BE20E9E52FD9187100CCB775 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		BE20E9EB2FD9187100CCB775 /* ZikAfricaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZikAfricaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BE20E9EF2FD9187100CCB775 /* ZikAfricaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZikAfricaTests.swift; sourceTree = "<group>"; };
+		BE20E9F52FD9187100CCB775 /* ZikAfricaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZikAfricaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BE20E9F92FD9187100CCB775 /* ZikAfricaUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZikAfricaUITests.swift; sourceTree = "<group>"; };
+		BE20E9FB2FD9187100CCB775 /* ZikAfricaUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZikAfricaUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		BE20EA082FD922DA00CCB775 /* QRCodeScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeScannerView.swift; sourceTree = "<group>"; };
+		BE20EA0A2FD9319F00CCB775 /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
+		BE20EA0C2FD931E200CCB775 /* TrackRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackRepository.swift; sourceTree = "<group>"; };
+		BE20EA0E2FD9379E00CCB775 /* RevealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealView.swift; sourceTree = "<group>"; };
+		BE20EA102FD93A1300CCB775 /* tracks.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tracks.json; sourceTree = "<group>"; };
+		BE20EA122FD9C2ED00CCB775 /* RulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesView.swift; sourceTree = "<group>"; };
+		BE20EA142FD9C62800CCB775 /* Platform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Platform.swift; sourceTree = "<group>"; };
+		BE20EA162FD9C89C00CCB775 /* MusicAppDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicAppDetector.swift; sourceTree = "<group>"; };
+		BE20EA182FD9C98C00CCB775 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		BE20EA192FD9CC1B00CCB775 /* PlatformChoiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformChoiceView.swift; sourceTree = "<group>"; };
+		BE20EA1B2FD9CDF500CCB775 /* MusicPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayerManager.swift; sourceTree = "<group>"; };
+		BE6BD4752FDDA50D008AF515 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		C00100022FE0000000000002 /* ConnectedGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectedGame.swift; sourceTree = "<group>"; };
+		C00100042FE0000000000004 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		C00100142FE0000000000014 /* AppleMusicFullTrackPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicFullTrackPlayer.swift; sourceTree = "<group>"; };
+		C00100162FE0000000000016 /* SpotifyFullTrackPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyFullTrackPlayer.swift; sourceTree = "<group>"; };
+		C00100172FE0000000000017 /* ZikAfrica.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ZikAfrica.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BE20E9D82FD9186B00CCB775 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C00100062FE0000000000006 /* FirebaseAuth in Frameworks */,
+				C00100072FE0000000000007 /* FirebaseFirestore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE20E9E82FD9187100CCB775 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE20E9F22FD9187100CCB775 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BE20E9D22FD9186B00CCB775 = {
+			isa = PBXGroup;
+			children = (
+				BE20E9DD2FD9186B00CCB775 /* ZikAfrica */,
+				BE20E9EE2FD9187100CCB775 /* ZikAfricaTests */,
+				BE20E9F82FD9187100CCB775 /* ZikAfricaUITests */,
+				BE20E9DC2FD9186B00CCB775 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BE20E9DC2FD9186B00CCB775 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BE20E9DB2FD9186B00CCB775 /* ZikAfrica.app */,
+				BE20E9EB2FD9187100CCB775 /* ZikAfricaTests.xctest */,
+				BE20E9F52FD9187100CCB775 /* ZikAfricaUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BE20E9DD2FD9186B00CCB775 /* ZikAfrica */ = {
+			isa = PBXGroup;
+			children = (
+				BE20EA182FD9C98C00CCB775 /* Info.plist */,
+				C00100172FE0000000000017 /* ZikAfrica.entitlements */,
+				BE20E9DE2FD9186B00CCB775 /* ZikAfricaApp.swift */,
+				BE20E9E02FD9186B00CCB775 /* ContentView.swift */,
+				BE20EA082FD922DA00CCB775 /* QRCodeScannerView.swift */,
+				BE20E9E22FD9187100CCB775 /* Assets.xcassets */,
+				BE20E9E42FD9187100CCB775 /* Preview Content */,
+				BE20EA0A2FD9319F00CCB775 /* Track.swift */,
+				BE20EA0C2FD931E200CCB775 /* TrackRepository.swift */,
+				BE20EA0E2FD9379E00CCB775 /* RevealView.swift */,
+				BE20EA102FD93A1300CCB775 /* tracks.json */,
+				BE20EA122FD9C2ED00CCB775 /* RulesView.swift */,
+				BE20EA142FD9C62800CCB775 /* Platform.swift */,
+				BE20EA162FD9C89C00CCB775 /* MusicAppDetector.swift */,
+				BE20EA192FD9CC1B00CCB775 /* PlatformChoiceView.swift */,
+				BE20EA1B2FD9CDF500CCB775 /* MusicPlayerManager.swift */,
+				C00100142FE0000000000014 /* AppleMusicFullTrackPlayer.swift */,
+				C00100162FE0000000000016 /* SpotifyFullTrackPlayer.swift */,
+				BE6BD4752FDDA50D008AF515 /* SplashView.swift */,
+				C00100022FE0000000000002 /* ConnectedGame.swift */,
+				C00100042FE0000000000004 /* GoogleService-Info.plist */,
+			);
+			path = ZikAfrica;
+			sourceTree = "<group>";
+		};
+		BE20E9E42FD9187100CCB775 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				BE20E9E52FD9187100CCB775 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		BE20E9EE2FD9187100CCB775 /* ZikAfricaTests */ = {
+			isa = PBXGroup;
+			children = (
+				BE20E9EF2FD9187100CCB775 /* ZikAfricaTests.swift */,
+			);
+			path = ZikAfricaTests;
+			sourceTree = "<group>";
+		};
+		BE20E9F82FD9187100CCB775 /* ZikAfricaUITests */ = {
+			isa = PBXGroup;
+			children = (
+				BE20E9F92FD9187100CCB775 /* ZikAfricaUITests.swift */,
+				BE20E9FB2FD9187100CCB775 /* ZikAfricaUITestsLaunchTests.swift */,
+			);
+			path = ZikAfricaUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BE20E9DA2FD9186B00CCB775 /* ZikAfrica */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BE20E9FF2FD9187100CCB775 /* Build configuration list for PBXNativeTarget "ZikAfrica" */;
+			buildPhases = (
+				BE20E9D72FD9186B00CCB775 /* Sources */,
+				BE20E9D82FD9186B00CCB775 /* Frameworks */,
+				BE20E9D92FD9186B00CCB775 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ZikAfrica;
+			packageProductDependencies = (
+				C00100112FE0000000000011 /* FirebaseAuth */,
+				C00100122FE0000000000012 /* FirebaseFirestore */,
+			);
+			productName = ZikAfrica;
+			productReference = BE20E9DB2FD9186B00CCB775 /* ZikAfrica.app */;
+			productType = "com.apple.product-type.application";
+		};
+		BE20E9EA2FD9187100CCB775 /* ZikAfricaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BE20EA022FD9187100CCB775 /* Build configuration list for PBXNativeTarget "ZikAfricaTests" */;
+			buildPhases = (
+				BE20E9E72FD9187100CCB775 /* Sources */,
+				BE20E9E82FD9187100CCB775 /* Frameworks */,
+				BE20E9E92FD9187100CCB775 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BE20E9ED2FD9187100CCB775 /* PBXTargetDependency */,
+			);
+			name = ZikAfricaTests;
+			productName = ZikAfricaTests;
+			productReference = BE20E9EB2FD9187100CCB775 /* ZikAfricaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		BE20E9F42FD9187100CCB775 /* ZikAfricaUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BE20EA052FD9187100CCB775 /* Build configuration list for PBXNativeTarget "ZikAfricaUITests" */;
+			buildPhases = (
+				BE20E9F12FD9187100CCB775 /* Sources */,
+				BE20E9F22FD9187100CCB775 /* Frameworks */,
+				BE20E9F32FD9187100CCB775 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BE20E9F72FD9187100CCB775 /* PBXTargetDependency */,
+			);
+			name = ZikAfricaUITests;
+			productName = ZikAfricaUITests;
+			productReference = BE20E9F52FD9187100CCB775 /* ZikAfricaUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BE20E9D32FD9186B00CCB775 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1520;
+				LastUpgradeCheck = 1520;
+				TargetAttributes = {
+					BE20E9DA2FD9186B00CCB775 = {
+						CreatedOnToolsVersion = 15.2;
+					};
+					BE20E9EA2FD9187100CCB775 = {
+						CreatedOnToolsVersion = 15.2;
+						TestTargetID = BE20E9DA2FD9186B00CCB775;
+					};
+					BE20E9F42FD9187100CCB775 = {
+						CreatedOnToolsVersion = 15.2;
+						TestTargetID = BE20E9DA2FD9186B00CCB775;
+					};
+				};
+			};
+			buildConfigurationList = BE20E9D62FD9186B00CCB775 /* Build configuration list for PBXProject "ZikAfrica" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = BE20E9D22FD9186B00CCB775;
+			productRefGroup = BE20E9DC2FD9186B00CCB775 /* Products */;
+			packageReferences = (
+				C00100082FE0000000000008 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BE20E9DA2FD9186B00CCB775 /* ZikAfrica */,
+				BE20E9EA2FD9187100CCB775 /* ZikAfricaTests */,
+				BE20E9F42FD9187100CCB775 /* ZikAfricaUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BE20E9D92FD9186B00CCB775 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE20E9E62FD9187100CCB775 /* Preview Assets.xcassets in Resources */,
+				BE20E9E32FD9187100CCB775 /* Assets.xcassets in Resources */,
+				BE20EA112FD93A1300CCB775 /* tracks.json in Resources */,
+				C00100032FE0000000000003 /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE20E9E92FD9187100CCB775 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE20E9F32FD9187100CCB775 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BE20E9D72FD9186B00CCB775 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE20EA132FD9C2ED00CCB775 /* RulesView.swift in Sources */,
+				BE20E9E12FD9186B00CCB775 /* ContentView.swift in Sources */,
+				BE20EA0D2FD931E200CCB775 /* TrackRepository.swift in Sources */,
+				BE20E9DF2FD9186B00CCB775 /* ZikAfricaApp.swift in Sources */,
+				BE20EA1A2FD9CC1B00CCB775 /* PlatformChoiceView.swift in Sources */,
+				BE6BD4762FDDA50D008AF515 /* SplashView.swift in Sources */,
+				BE20EA092FD922DA00CCB775 /* QRCodeScannerView.swift in Sources */,
+				BE20EA172FD9C89C00CCB775 /* MusicAppDetector.swift in Sources */,
+				BE20EA0B2FD9319F00CCB775 /* Track.swift in Sources */,
+				BE20EA152FD9C62800CCB775 /* Platform.swift in Sources */,
+				BE20EA1C2FD9CDF500CCB775 /* MusicPlayerManager.swift in Sources */,
+				C00100132FE0000000000013 /* AppleMusicFullTrackPlayer.swift in Sources */,
+				C00100152FE0000000000015 /* SpotifyFullTrackPlayer.swift in Sources */,
+				BE20EA0F2FD9379E00CCB775 /* RevealView.swift in Sources */,
+				C00100012FE0000000000001 /* ConnectedGame.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE20E9E72FD9187100CCB775 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE20E9F02FD9187100CCB775 /* ZikAfricaTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE20E9F12FD9187100CCB775 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE20E9FA2FD9187100CCB775 /* ZikAfricaUITests.swift in Sources */,
+				BE20E9FC2FD9187100CCB775 /* ZikAfricaUITestsLaunchTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BE20E9ED2FD9187100CCB775 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BE20E9DA2FD9186B00CCB775 /* ZikAfrica */;
+			targetProxy = BE20E9EC2FD9187100CCB775 /* PBXContainerItemProxy */;
+		};
+		BE20E9F72FD9187100CCB775 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BE20E9DA2FD9186B00CCB775 /* ZikAfrica */;
+			targetProxy = BE20E9F62FD9187100CCB775 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		BE20E9FD2FD9187100CCB775 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BE20E9FE2FD9187100CCB775 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BE20EA002FD9187100CCB775 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"ZikAfrica/Preview Content\"";
+				DEVELOPMENT_TEAM = 8H443Z4286;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ZikAfrica/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSCameraUsageDescription = "ZikAfrica utilise la caméra pour scanner les cartes du jeu.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zikafrica.ZikAfrica;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BE20EA012FD9187100CCB775 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"ZikAfrica/Preview Content\"";
+				DEVELOPMENT_TEAM = 8H443Z4286;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ZikAfrica/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSCameraUsageDescription = "ZikAfrica utilise la caméra pour scanner les cartes du jeu.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zikafrica.ZikAfrica;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BE20EA032FD9187100CCB775 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8H443Z4286;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zikafrica.ZikAfricaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ZikAfrica.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ZikAfrica";
+			};
+			name = Debug;
+		};
+		BE20EA042FD9187100CCB775 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8H443Z4286;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zikafrica.ZikAfricaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ZikAfrica.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ZikAfrica";
+			};
+			name = Release;
+		};
+		BE20EA062FD9187100CCB775 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8H443Z4286;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zikafrica.ZikAfricaUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ZikAfrica;
+			};
+			name = Debug;
+		};
+		BE20EA072FD9187100CCB775 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8H443Z4286;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zikafrica.ZikAfricaUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ZikAfrica;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BE20E9D62FD9186B00CCB775 /* Build configuration list for PBXProject "ZikAfrica" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BE20E9FD2FD9187100CCB775 /* Debug */,
+				BE20E9FE2FD9187100CCB775 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BE20E9FF2FD9187100CCB775 /* Build configuration list for PBXNativeTarget "ZikAfrica" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BE20EA002FD9187100CCB775 /* Debug */,
+				BE20EA012FD9187100CCB775 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BE20EA022FD9187100CCB775 /* Build configuration list for PBXNativeTarget "ZikAfricaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BE20EA032FD9187100CCB775 /* Debug */,
+				BE20EA042FD9187100CCB775 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BE20EA052FD9187100CCB775 /* Build configuration list for PBXNativeTarget "ZikAfricaUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BE20EA062FD9187100CCB775 /* Debug */,
+				BE20EA072FD9187100CCB775 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C00100082FE0000000000008 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.29.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C00100112FE0000000000011 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C00100082FE0000000000008 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		C00100122FE0000000000012 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C00100082FE0000000000008 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = BE20E9D32FD9186B00CCB775 /* Project object */;
+}
