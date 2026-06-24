@@ -4,8 +4,6 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
 
-    integrations:
-      app_store_connect: Valerkl
 
     environment:
       xcode: latest
@@ -17,7 +15,7 @@ workflows:
       - name: Set up code signing
         script: |
           keychain initialize
-          app-store-connect fetch-signing-files com.zikafrica.ZikAfrica --type IOS_APP_STORE --create --verbose
+          app-store-connect fetch-signing-files com.zikafrica.ZikAfrica --create --verbose
           keychain add-certificates
           xcode-project use-profiles
 
