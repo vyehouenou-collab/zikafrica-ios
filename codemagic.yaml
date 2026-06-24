@@ -11,12 +11,18 @@ workflows:
         bundle_identifier: com.zikafrica.ZikAfrica
 
     scripts:
+      - name: Créer ou récupérer le certificat et le profil
+        script: |
+          app-store-connect fetch-signing-files com.zikafrica.ZikAfrica \
+            --type IOS_APP_STORE \
+            --create
+          keychain initialize
+          keychain add-certificates
+
       - name: Build IPA
         script: |
-          # Appliquer les profils récupérés automatiquement par Codemagic
           xcode-project use-profiles
 
-          # Archiver l'app
           xcodebuild archive \
             -project ZikAfrica.xcodeproj \
             -scheme ZikAfrica \
@@ -27,7 +33,6 @@ workflows:
             DEVELOPMENT_TEAM=8H443Z4286 \
             COMPILER_INDEX_STORE_ENABLE=NO
 
-          # Exporter l'IPA
           xcodebuild -exportArchive \
             -archivePath build/ios/xcarchive/ZikAfrica.xcarchive \
             -exportPath build/ios/ipa \
