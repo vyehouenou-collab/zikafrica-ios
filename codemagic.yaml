@@ -17,13 +17,13 @@ workflows:
       - name: Set up code signing
         script: |
           keychain initialize
-          app-store-connect fetch-signing-files com.zikafrica.ZikAfrica --type IOS_APP_STORE --create
+          app-store-connect fetch-signing-files com.zikafrica.ZikAfrica --type IOS_APP_STORE --create --verbose
           keychain add-certificates
           xcode-project use-profiles
 
       - name: Build IPA
-        script: |
-          xcode-project build-ipa --project ZikAfrica.xcodeproj --scheme ZikAfrica
+        script: |          
+xcode-project build-ipa --project ZikAfrica.xcodeproj --scheme ZikAfrica
 
     artifacts:
       - build/ios/ipa/*.ipa
