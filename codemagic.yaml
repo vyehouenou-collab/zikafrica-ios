@@ -17,7 +17,7 @@ workflows:
       - name: Set up code signing
         script: |
           keychain initialize
-          app-store-connect fetch-signing-files com.zikafrica.ZikAfrica --create --verbose
+          app-store-connect fetch-signing-files com.zikafrica.ZikAfrica --type IOS_APP_STORE --create --verbose
           keychain add-certificates
           xcode-project use-profiles
 
