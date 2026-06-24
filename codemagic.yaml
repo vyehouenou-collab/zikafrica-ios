@@ -3,7 +3,7 @@ workflows:
     name: ZikAfrica iOS TestFlight
     instance_type: mac_mini_m2
     integrations:
-      app_store_connect: ZikAfrica_AppStore
+      app_store_connect: CodemagicAdmin
 
     environment:
       ios_signing:
