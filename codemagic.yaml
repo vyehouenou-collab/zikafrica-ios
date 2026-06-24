@@ -1,75 +1,41 @@
 workflows:
-  zikafrica-ios-workflow:
+  ZikAfrica iOS TestFlight:
     name: ZikAfrica iOS TestFlight
-    max_build_duration: 60
     instance_type: mac_mini_m2
-
     integrations:
-      app_store_connect: CodemagicAdmin
+      app_store_connect: ZikAfrica_AppStore
 
     environment:
-      xcode: latest
       ios_signing:
-        provisioning_profiles:
-          - zikafricaappstore
-        certificates:
-          - zikafrica_distribution
+        distribution_type: app_store
+        bundle_identifier: com.zikafrica.ZikAfrica
 
     scripts:
-      - name: Set up code signing
-        script: |
-          keychain initialize
-          keychain add-certificates
-          xcode-project use-profiles
-
       - name: Build IPA
         script: |
-          set -o pipefail
-          mkdir -p build/ios/xcarchive build/ios/ipa
+          # Appliquer les profils récupérés automatiquement par Codemagic
+          xcode-project use-profiles
+
+          # Archiver l'app
           xcodebuild archive \
             -project ZikAfrica.xcodeproj \
             -scheme ZikAfrica \
             -configuration Release \
-            -destination 'generic/platform=iOS' \
+            -destination "generic/platform=iOS" \
             -archivePath build/ios/xcarchive/ZikAfrica.xcarchive \
+            CODE_SIGN_STYLE=Automatic \
             DEVELOPMENT_TEAM=8H443Z4286 \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            CODE_SIGN_STYLE=Manual \
-            PROVISIONING_PROFILE_SPECIFIER=zikafricaappstore \
-            COMPILER_INDEX_STORE_ENABLE=NO | tee build/xcodebuild-archive.log
+            COMPILER_INDEX_STORE_ENABLE=NO
 
-          cat > build/exportOptions.plist <<'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store-connect</string>
-            <key>signingStyle</key>
-            <string>manual</string>
-            <key>teamID</key>
-            <string>8H443Z4286</string>
-            <key>signingCertificate</key>
-            <string>Apple Distribution</string>
-            <key>provisioningProfiles</key>
-            <dict>
-              <key>com.zikafrica.ZikAfrica</key>
-              <string>zikafricaappstore</string>
-            </dict>
-          </dict>
-          </plist>
-          EOF
-
+          # Exporter l'IPA
           xcodebuild -exportArchive \
             -archivePath build/ios/xcarchive/ZikAfrica.xcarchive \
             -exportPath build/ios/ipa \
-            -exportOptionsPlist build/exportOptions.plist | tee build/xcodebuild-export.log
+            -exportOptionsPlist /Users/builder/export_options.plist
 
     artifacts:
       - build/ios/ipa/*.ipa
-      - build/xcodebuild-archive.log
-      - build/xcodebuild-export.log
-      - build/exportOptions.plist
+      - /tmp/xcodebuild_logs/*.log
 
     publishing:
       app_store_connect:
