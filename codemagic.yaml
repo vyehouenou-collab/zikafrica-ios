@@ -12,7 +12,7 @@ workflows:
         provisioning_profiles:
           - zikafricaappstore
         certificates:
-          - zikafrica_distribution
+          - zikafrica_distribution.p12
 
     scripts:
       - name: Set up code signing
