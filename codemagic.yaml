@@ -7,21 +7,18 @@ workflows:
       app_store_connect: CodemagicAdmin
 
     environment:
-      vars:
-        BUNDLE_ID: "com.zikafrica.ZikAfrica"
-        DEVELOPMENT_TEAM: "8H443Z4286"
+      xcode: latest
+      ios_signing:
+        provisioning_profiles:
+          - zikafricaappstore
+        certificates:
+          - zikafrica_distribution
 
     scripts:
-      - name: Créer ou récupérer le certificat et le profil
+      - name: Set up code signing
         script: |
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
           keychain initialize
           keychain add-certificates
-
-      - name: Appliquer les profils Xcode
-        script: |
           xcode-project use-profiles
 
       - name: Build IPA
