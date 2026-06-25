@@ -2,6 +2,7 @@ workflows:
   ZikAfrica iOS TestFlight:
     name: ZikAfrica iOS TestFlight
     instance_type: mac_mini_m2
+
     integrations:
       app_store_connect: CodemagicAdmin
 
@@ -20,28 +21,17 @@ workflows:
           keychain add-certificates
 
       - name: Appliquer les profils Xcode
-        script: xcode-project use-profiles
+        script: |
+          xcode-project use-profiles
 
       - name: Build IPA
         script: |
-          xcodebuild archive \
-            -project ZikAfrica.xcodeproj \
-            -scheme ZikAfrica \
-            -configuration Release \
-            -destination "generic/platform=iOS" \
-            -archivePath build/ios/xcarchive/ZikAfrica.xcarchive \
-            CODE_SIGN_STYLE=Automatic \
-            DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM \
-            COMPILER_INDEX_STORE_ENABLE=NO
-
-          xcodebuild -exportArchive \
-            -archivePath build/ios/xcarchive/ZikAfrica.xcarchive \
-            -exportPath build/ios/ipa \
-            -exportOptionsPlist /Users/builder/export_options.plist
+          xcode-project build-ipa \
+            --project ZikAfrica.xcodeproj \
+            --scheme ZikAfrica
 
     artifacts:
       - build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
 
     publishing:
       app_store_connect:
