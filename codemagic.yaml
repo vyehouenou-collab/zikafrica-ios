@@ -18,16 +18,28 @@ workflows:
     scripts:
       - name: Set up code signing
         script: |
+          keychain initialize
+          keychain add-certificates
           xcode-project use-profiles
 
       - name: Build IPA
         script: |
-          xcode-project build-ipa \
-            --project ZikAfrica.xcodeproj \
-            --scheme ZikAfrica
+          set -o pipefail
+          xcodebuild archive \
+            -project ZikAfrica.xcodeproj \
+            -scheme ZikAfrica \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/ZikAfrica.xcarchive \
+            DEVELOPMENT_TEAM=8H443Z4286 \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE_SPECIFIER="ZikAfrica App Store" \
+            COMPILER_INDEX_STORE_ENABLE=NO | tee xcodebuild.log
 
     artifacts:
       - build/ios/ipa/*.ipa
+      - xcodebuild.log
 
     publishing:
       app_store_connect:
