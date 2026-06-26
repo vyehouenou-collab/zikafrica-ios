@@ -30,7 +30,7 @@ class TrackRepository {
             let tracks = try JSONDecoder().decode([Track].self, from: data)
 
             tracksByCode = Dictionary(
-                uniqueKeysWithValues: tracks.map { ($0.qrCode, $0) }
+                uniqueKeysWithValues: tracks.map { ($0.qrCode.uppercased(), $0) }
             )
 
             print("Tracks chargés : \(tracksByCode.count)")
@@ -40,14 +40,21 @@ class TrackRepository {
     }
 
     func findTrack(qrCode: String) -> Track? {
-        let cleanCode = qrCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let cleanCode = extractZaCode(from: qrCode) else {
+            print("QR Code non reconnu :", qrCode)
+            return nil
+        }
+
         print("Recherche :", cleanCode)
         print("Codes disponibles :", tracksByCode.keys)
         return tracksByCode[cleanCode]
     }
 
     func findTrackOnlineIfNeeded(qrCode: String) async -> Track? {
-        let cleanCode = qrCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let cleanCode = extractZaCode(from: qrCode) else {
+            print("QR Code non reconnu :", qrCode)
+            return nil
+        }
 
         if let localTrack = tracksByCode[cleanCode] {
             return localTrack
@@ -92,12 +99,24 @@ class TrackRepository {
                 appleMusicId: appleMusicId
             )
 
-            tracksByCode[track.qrCode] = track
+            tracksByCode[track.qrCode.uppercased()] = track
             return track
         } catch {
             print("Erreur chargement piste distante :", error)
             return nil
         }
+    }
+
+    private func extractZaCode(from value: String) -> String? {
+        let pattern = #"ZA-\d{4,6}"#
+        guard let range = value.range(
+            of: pattern,
+            options: [.regularExpression, .caseInsensitive]
+        ) else {
+            return nil
+        }
+
+        return String(value[range]).uppercased()
     }
 
     private func stringValue(_ value: Any?) -> String? {
