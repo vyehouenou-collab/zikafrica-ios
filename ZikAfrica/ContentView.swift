@@ -23,6 +23,8 @@ struct ContentView: View {
     @State private var showPlaybackReturn = false
     @State private var awaitingMusicAppReturn = false
     @State private var showMusicAppError = false
+    @State private var showAppleMusicRecommendation = false
+    @State private var showPlatformChoiceAfterAppleMusicRecommendation = false
     @State private var showConnectedGame = false
     @State private var showSettings = false
     @State private var scanSoundEnabled = false
@@ -175,6 +177,17 @@ struct ContentView: View {
                 showPlaybackTransition = false
                 showPlaybackReturn = true
             }
+        }
+        .alert("Apple Music recommandé", isPresented: $showAppleMusicRecommendation) {
+            Button("Télécharger Apple Music") {
+                openAppleMusicDownloadPage()
+                showDeferredPlatformChoiceIfNeeded()
+            }
+            Button("Continuer", role: .cancel) {
+                showDeferredPlatformChoiceIfNeeded()
+            }
+        } message: {
+            Text("Pour une expérience ZikAfrica plus fluide sur iPhone, Apple Music permet de lancer les titres directement dans l’app et de garder tout le suspense du jeu. Tu peux continuer avec les options disponibles, mais Apple Music offrira le meilleur confort de jeu.")
         }
         .alert("Impossible d’ouvrir la plateforme", isPresented: $showMusicAppError) {
             Button("OK", role: .cancel) {}
@@ -526,16 +539,22 @@ struct ContentView: View {
             showPlatformChoice = false
         } else if hasSpotify && hasDeezer {
             selectedPlatform = nil
-            showPlatformChoice = true
+            showPlatformChoice = false
+            showPlatformChoiceAfterAppleMusicRecommendation = true
+            scheduleAppleMusicRecommendation()
         } else if hasSpotify {
             selectedPlatform = .spotify
             showPlatformChoice = false
+            scheduleAppleMusicRecommendation()
         } else if hasDeezer {
             selectedPlatform = .deezer
             showPlatformChoice = false
+            scheduleAppleMusicRecommendation()
         } else {
             selectedPlatform = nil
-            showPlatformChoice = true
+            showPlatformChoice = false
+            showPlatformChoiceAfterAppleMusicRecommendation = true
+            scheduleAppleMusicRecommendation()
         }
         #endif
 
@@ -544,6 +563,35 @@ struct ContentView: View {
                 showSplash = false
             }
         }
+    }
+
+    private func scheduleAppleMusicRecommendation() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.45) {
+            guard !showAppleMusicRecommendation, !MusicAppDetector.isAppleMusicInstalled() else {
+                return
+            }
+
+            showAppleMusicRecommendation = true
+        }
+    }
+
+    private func showDeferredPlatformChoiceIfNeeded() {
+        guard showPlatformChoiceAfterAppleMusicRecommendation else {
+            return
+        }
+
+        showPlatformChoiceAfterAppleMusicRecommendation = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            showPlatformChoice = true
+        }
+    }
+
+    private func openAppleMusicDownloadPage() {
+        guard let url = URL(string: "https://apps.apple.com/app/apple-music/id1108187390") else {
+            return
+        }
+
+        UIApplication.shared.open(url)
     }
 }
 
