@@ -460,7 +460,10 @@ struct ContentView: View {
                     return
                 }
 
-                if let platform = fallbackPlatform ?? selectedPlatform {
+                if let platform = externalFallbackPlatform(
+                    preferredPlatform: fallbackPlatform ?? selectedPlatform,
+                    track: track
+                ) {
                     launchMusicApp(track: track, platform: platform)
                 } else {
                     showPlaybackTransition = false
@@ -485,6 +488,40 @@ struct ContentView: View {
             return await SpotifyFullTrackPlayer.shared.play(track: track)
 
         case .deezer:
+            return false
+        }
+    }
+
+    private func externalFallbackPlatform(
+        preferredPlatform: MusicPlatform?,
+        track: Track
+    ) -> MusicPlatform? {
+        if let preferredPlatform,
+           preferredPlatform != .appleMusic,
+           canOpenExternally(platform: preferredPlatform, track: track) {
+            return preferredPlatform
+        }
+
+        if MusicAppDetector.isSpotifyInstalled(),
+           canOpenExternally(platform: .spotify, track: track) {
+            return .spotify
+        }
+
+        if MusicAppDetector.isDeezerInstalled(),
+           canOpenExternally(platform: .deezer, track: track) {
+            return .deezer
+        }
+
+        return nil
+    }
+
+    private func canOpenExternally(platform: MusicPlatform, track: Track) -> Bool {
+        switch platform {
+        case .spotify:
+            return !track.spotifyUri.isEmpty
+        case .deezer:
+            return !track.deezerId.isEmpty
+        case .appleMusic:
             return false
         }
     }
