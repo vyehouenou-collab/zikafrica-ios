@@ -678,6 +678,7 @@ final class DeezerPreviewPlayer {
 
         do {
             let previewURL = try await fetchPreviewURL(deezerId: track.deezerId)
+            try configureAudioSession()
             player?.pause()
             let player = AVPlayer(url: previewURL)
             self.player = player
@@ -703,6 +704,12 @@ final class DeezerPreviewPlayer {
         }
 
         return previewURL
+    }
+
+    private func configureAudioSession() throws {
+        let session = AVAudioSession.sharedInstance()
+        try session.setCategory(.playback, mode: .default, options: [])
+        try session.setActive(true)
     }
 }
 
