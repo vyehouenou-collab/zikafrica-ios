@@ -1,36 +1,103 @@
-//
-//  ZikAfricaTests.swift
-//  ZikAfricaTests
-//
-//  Created by Valérien YEHOUENOU on 09/06/2026.
-//
-
 import XCTest
 @testable import ZikAfrica
 
 final class ZikAfricaTests: XCTestCase {
+    private let completeTrack = Track(
+        qrCode: "ZA-TEST",
+        title: "Test Song",
+        artist: "Test Artist",
+        year: "2026",
+        spotifyUri: "spotify:track:test",
+        deezerId: "123456",
+        appleMusicId: "987654"
+    )
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
+    func testGlobalPriorityIgnoresUserChoiceWhenAllPlatformsAreAvailable() {
+        for preferredPlatform in [MusicPlatform.appleMusic, .spotify, .deezer, nil] {
+            let attempts = PlaybackRoutingPolicy.attempts(
+                preferredPlatform: preferredPlatform,
+                track: completeTrack,
+                installedApps: InstalledMusicApps(appleMusic: true, spotify: true, deezer: true)
+            )
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+            XCTAssertEqual(
+                attempts,
+                [
+                    .fullTrack(.appleMusic),
+                    .fullTrack(.spotify),
+                    .deezerPreview,
+                    .external(.spotify)
+                ]
+            )
         }
     }
 
+    func testSpotifyBecomesFirstFullTrackOptionWhenAppleMusicIsUnavailable() {
+        let attempts = PlaybackRoutingPolicy.attempts(
+            preferredPlatform: .appleMusic,
+            track: completeTrack,
+            installedApps: InstalledMusicApps(appleMusic: false, spotify: true, deezer: true)
+        )
+
+        XCTAssertEqual(
+            attempts,
+            [
+                .fullTrack(.spotify),
+                .deezerPreview,
+                .external(.spotify)
+            ]
+        )
+    }
+
+    func testDeezerPreviewIsUsedBeforeExternalFallbackWhenFullTrackPlatformsAreUnavailable() {
+        let attempts = PlaybackRoutingPolicy.attempts(
+            preferredPlatform: .spotify,
+            track: completeTrack,
+            installedApps: InstalledMusicApps(appleMusic: false, spotify: false, deezer: true)
+        )
+
+        XCTAssertEqual(
+            attempts,
+            [
+                .deezerPreview,
+                .external(.deezer)
+            ]
+        )
+    }
+
+    func testExternalFallbackPrefersSpotifyOverDeezerRegardlessOfUserChoice() {
+        let attempts = PlaybackRoutingPolicy.attempts(
+            preferredPlatform: .deezer,
+            track: completeTrack,
+            installedApps: InstalledMusicApps(appleMusic: false, spotify: true, deezer: true)
+        )
+
+        XCTAssertEqual(attempts.last, .external(.spotify))
+    }
+
+    func testNoExternalOpeningWhenNoExternalLinksAreAvailable() {
+        let trackWithoutExternalLinks = Track(
+            qrCode: "ZA-NO-EXT",
+            title: "No External",
+            artist: "Test Artist",
+            year: "2026",
+            spotifyUri: "",
+            deezerId: "",
+            appleMusicId: "987654"
+        )
+
+        let attempts = PlaybackRoutingPolicy.attempts(
+            preferredPlatform: .deezer,
+            track: trackWithoutExternalLinks,
+            installedApps: InstalledMusicApps(appleMusic: true, spotify: true, deezer: true)
+        )
+
+        XCTAssertEqual(
+            attempts,
+            [
+                .fullTrack(.appleMusic),
+                .deezerPreview
+            ]
+        )
+    }
 }

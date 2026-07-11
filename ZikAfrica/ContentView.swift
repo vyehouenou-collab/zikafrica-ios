@@ -438,17 +438,21 @@ struct ContentView: View {
         showPlaybackTransition = false
 
         Task {
-            let fullTrackStarted = await playFullTrackIfAvailable(
-                track: track,
-                platform: fallbackPlatform ?? selectedPlatform
-            )
+            let installedApps = InstalledMusicApps.current
 
-            if fullTrackStarted {
-                await MainActor.run {
-                    showPlaybackTransition = false
-                    showPlaybackReturn = true
+            for platform in PlaybackRoutingPolicy.fullTrackPlatforms(track: track, installedApps: installedApps) {
+                let fullTrackStarted = await playFullTrackIfAvailable(
+                    track: track,
+                    platform: platform
+                )
+
+                if fullTrackStarted {
+                    await MainActor.run {
+                        showPlaybackTransition = false
+                        showPlaybackReturn = true
+                    }
+                    return
                 }
-                return
             }
 
             let previewStarted = await DeezerPreviewPlayer.shared.playPreview(for: track)
@@ -473,11 +477,7 @@ struct ContentView: View {
         }
     }
 
-    private func playFullTrackIfAvailable(track: Track, platform: MusicPlatform?) async -> Bool {
-        guard let platform else {
-            return false
-        }
-
+    private func playFullTrackIfAvailable(track: Track, platform: MusicPlatform) async -> Bool {
         switch platform {
         case .appleMusic:
             playbackSourceName = "Apple Music"
@@ -496,34 +496,11 @@ struct ContentView: View {
         preferredPlatform: MusicPlatform?,
         track: Track
     ) -> MusicPlatform? {
-        if let preferredPlatform,
-           preferredPlatform != .appleMusic,
-           canOpenExternally(platform: preferredPlatform, track: track) {
-            return preferredPlatform
-        }
-
-        if MusicAppDetector.isSpotifyInstalled(),
-           canOpenExternally(platform: .spotify, track: track) {
-            return .spotify
-        }
-
-        if MusicAppDetector.isDeezerInstalled(),
-           canOpenExternally(platform: .deezer, track: track) {
-            return .deezer
-        }
-
-        return nil
-    }
-
-    private func canOpenExternally(platform: MusicPlatform, track: Track) -> Bool {
-        switch platform {
-        case .spotify:
-            return !track.spotifyUri.isEmpty
-        case .deezer:
-            return !track.deezerId.isEmpty
-        case .appleMusic:
-            return false
-        }
+        PlaybackRoutingPolicy.externalFallbackPlatform(
+            preferredPlatform: preferredPlatform,
+            track: track,
+            installedApps: .current
+        )
     }
 
     private func launchMusicApp(track: Track, platform: MusicPlatform) {

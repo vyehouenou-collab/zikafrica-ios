@@ -32,6 +32,7 @@
 		C00100132FE0000000000013 /* AppleMusicFullTrackPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00100142FE0000000000014 /* AppleMusicFullTrackPlayer.swift */; };
 		C00100152FE0000000000015 /* SpotifyFullTrackPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00100162FE0000000000016 /* SpotifyFullTrackPlayer.swift */; };
 		C00200012FE1000000000001 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = C00200032FE1000000000003 /* SpotifyiOS */; };
+		C00300012FE2000000000001 /* PlaybackRoutingPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00300022FE2000000000002 /* PlaybackRoutingPolicy.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,6 +80,7 @@
 		C00100142FE0000000000014 /* AppleMusicFullTrackPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicFullTrackPlayer.swift; sourceTree = "<group>"; };
 		C00100162FE0000000000016 /* SpotifyFullTrackPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyFullTrackPlayer.swift; sourceTree = "<group>"; };
 		C00100172FE0000000000017 /* ZikAfrica.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ZikAfrica.entitlements; sourceTree = "<group>"; };
+		C00300022FE2000000000002 /* PlaybackRoutingPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackRoutingPolicy.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -148,6 +150,7 @@
 				BE20EA162FD9C89C00CCB775 /* MusicAppDetector.swift */,
 				BE20EA192FD9CC1B00CCB775 /* PlatformChoiceView.swift */,
 				BE20EA1B2FD9CDF500CCB775 /* MusicPlayerManager.swift */,
+				C00300022FE2000000000002 /* PlaybackRoutingPolicy.swift */,
 				C00100142FE0000000000014 /* AppleMusicFullTrackPlayer.swift */,
 				C00100162FE0000000000016 /* SpotifyFullTrackPlayer.swift */,
 				BE6BD4752FDDA50D008AF515 /* SplashView.swift */,
@@ -334,6 +337,7 @@
 				BE20EA0B2FD9319F00CCB775 /* Track.swift in Sources */,
 				BE20EA152FD9C62800CCB775 /* Platform.swift in Sources */,
 				BE20EA1C2FD9CDF500CCB775 /* MusicPlayerManager.swift in Sources */,
+				C00300012FE2000000000001 /* PlaybackRoutingPolicy.swift in Sources */,
 				C00100132FE0000000000013 /* AppleMusicFullTrackPlayer.swift in Sources */,
 				C00100152FE0000000000015 /* SpotifyFullTrackPlayer.swift in Sources */,
 				BE20EA0F2FD9379E00CCB775 /* RevealView.swift in Sources */,
