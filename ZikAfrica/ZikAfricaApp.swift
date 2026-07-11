@@ -17,6 +17,9 @@ struct ZikAfricaApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onOpenURL { url in
+                    SpotifyFullTrackPlayer.shared.handleOpenURL(url)
+                }
         }
     }
 }

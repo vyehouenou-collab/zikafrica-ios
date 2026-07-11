@@ -31,6 +31,7 @@
 		C00100072FE0000000000007 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C00100122FE0000000000012 /* FirebaseFirestore */; };
 		C00100132FE0000000000013 /* AppleMusicFullTrackPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00100142FE0000000000014 /* AppleMusicFullTrackPlayer.swift */; };
 		C00100152FE0000000000015 /* SpotifyFullTrackPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00100162FE0000000000016 /* SpotifyFullTrackPlayer.swift */; };
+		C00200012FE1000000000001 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = C00200032FE1000000000003 /* SpotifyiOS */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,6 +88,7 @@
 			files = (
 				C00100062FE0000000000006 /* FirebaseAuth in Frameworks */,
 				C00100072FE0000000000007 /* FirebaseFirestore in Frameworks */,
+				C00200012FE1000000000001 /* SpotifyiOS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -199,6 +201,7 @@
 			packageProductDependencies = (
 				C00100112FE0000000000011 /* FirebaseAuth */,
 				C00100122FE0000000000012 /* FirebaseFirestore */,
+				C00200032FE1000000000003 /* SpotifyiOS */,
 			);
 			productName = ZikAfrica;
 			productReference = BE20E9DB2FD9186B00CCB775 /* ZikAfrica.app */;
@@ -275,6 +278,7 @@
 			productRefGroup = BE20E9DC2FD9186B00CCB775 /* Products */;
 			packageReferences = (
 				C00100082FE0000000000008 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				C00200022FE1000000000002 /* XCRemoteSwiftPackageReference "ios-sdk" */,
 			);
 			projectDirPath = "";
 			projectRoot = "";
@@ -679,6 +683,14 @@
 				minimumVersion = 10.29.0;
 			};
 		};
+		C00200022FE1000000000002 /* XCRemoteSwiftPackageReference "ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/spotify/ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -691,6 +703,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C00100082FE0000000000008 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		C00200032FE1000000000003 /* SpotifyiOS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C00200022FE1000000000002 /* XCRemoteSwiftPackageReference "ios-sdk" */;
+			productName = SpotifyiOS;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
