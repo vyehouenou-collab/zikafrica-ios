@@ -22,10 +22,14 @@ final class ConnectedGameSession: ObservableObject {
     @Published private(set) var isFinished: Bool
     @Published private(set) var teams: [ConnectedTeam] = []
     @Published private(set) var isLoading = false
+    @Published private(set) var buzzOpen = false
+    @Published private(set) var buzzRound = 0
+    @Published private(set) var firstBuzzPlayerName: String?
     @Published var errorMessage: String?
 
     private let db = Firestore.firestore()
-    private var listener: ListenerRegistration?
+    private var playerListener: ListenerRegistration?
+    private var gameListener: ListenerRegistration?
     private var history: [ScoreChange] = []
 
     init() {
@@ -55,6 +59,8 @@ final class ConnectedGameSession: ObservableObject {
                 "hostUid": uid,
                 "pin": self.pin,
                 "status": "open",
+                "buzzOpen": false,
+                "buzzRound": 0,
                 "createdAt": FieldValue.serverTimestamp(),
                 "expiresAt": Timestamp(date: expires)
             ]) { error in
@@ -84,6 +90,9 @@ final class ConnectedGameSession: ObservableObject {
         stopListening()
         teams = []
         history = []
+        buzzOpen = false
+        buzzRound = 0
+        firstBuzzPlayerName = nil
         gameCode = Self.newCode()
         pin = Self.newPIN()
         isActive = false
@@ -147,9 +156,57 @@ final class ConnectedGameSession: ObservableObject {
             }
     }
 
+    func openBuzzerForPlayback() {
+        guard isActive, !isFinished else { return }
+        db.collection("games").document(gameCode).updateData([
+            "buzzOpen": true,
+            "buzzRound": FieldValue.increment(Int64(1)),
+            "firstBuzzPlayerId": FieldValue.delete(),
+            "firstBuzzPlayerName": FieldValue.delete(),
+            "firstBuzzAt": FieldValue.delete(),
+            "lastPlaybackActionAt": FieldValue.serverTimestamp()
+        ])
+    }
+
+    func resetBuzzer() {
+        guard isActive, !isFinished else { return }
+        db.collection("games").document(gameCode).updateData([
+            "buzzOpen": false,
+            "firstBuzzPlayerId": FieldValue.delete(),
+            "firstBuzzPlayerName": FieldValue.delete(),
+            "firstBuzzAt": FieldValue.delete()
+        ])
+    }
+
     func listenForPlayers() {
-        guard isActive, listener == nil else { return }
-        listener = db.collection("games").document(gameCode).collection("players")
+        guard isActive else { return }
+
+        if gameListener == nil {
+            gameListener = db.collection("games").document(gameCode)
+                .addSnapshotListener { [weak self] snapshot, error in
+                    Task { @MainActor in
+                        guard let self else { return }
+                        if error != nil {
+                            self.errorMessage = "Impossible de synchroniser le buzzer."
+                            return
+                        }
+
+                        let data = snapshot?.data() ?? [:]
+                        self.buzzOpen = data["buzzOpen"] as? Bool ?? false
+                        if let buzzRound = data["buzzRound"] as? Int {
+                            self.buzzRound = buzzRound
+                        } else if let buzzRound = data["buzzRound"] as? NSNumber {
+                            self.buzzRound = buzzRound.intValue
+                        } else {
+                            self.buzzRound = 0
+                        }
+                        self.firstBuzzPlayerName = data["firstBuzzPlayerName"] as? String
+                    }
+                }
+        }
+
+        guard playerListener == nil else { return }
+        playerListener = db.collection("games").document(gameCode).collection("players")
             .addSnapshotListener { [weak self] snapshot, error in
                 Task { @MainActor in
                     guard let self else { return }
@@ -169,8 +226,10 @@ final class ConnectedGameSession: ObservableObject {
     }
 
     func stopListening() {
-        listener?.remove()
-        listener = nil
+        playerListener?.remove()
+        playerListener = nil
+        gameListener?.remove()
+        gameListener = nil
     }
 
     private func authenticate(completion: @escaping (String) -> Void) {
@@ -266,6 +325,8 @@ struct ConnectedGameView: View {
                             Text("\(session.teams.count) joueur\(session.teams.count > 1 ? "s" : "") connecté\(session.teams.count > 1 ? "s" : "")")
                                 .font(.system(size: 21, weight: .semibold, design: .rounded))
                                 .foregroundStyle(Color(red: 0.3, green: 1, blue: 0.53))
+
+                            ConnectedBuzzerStatus(session: session)
 
                             if session.teams.isEmpty {
                                 Text("En attente des joueurs...")
@@ -391,6 +452,68 @@ private struct ConnectedTeamRow: View {
             .overlay {
                 Capsule().stroke(color.opacity(0.72), lineWidth: 1)
             }
+    }
+}
+
+private struct ConnectedBuzzerStatus: View {
+    @ObservedObject var session: ConnectedGameSession
+
+    private var title: String {
+        if let name = session.firstBuzzPlayerName {
+            return "Premier buzz : \(name)"
+        }
+        return session.buzzOpen ? "BUZZER OUVERT" : "Buzzer en attente"
+    }
+
+    private var subtitle: String {
+        if session.firstBuzzPlayerName != nil {
+            return "Attribue les points, puis relance une carte ou rejoue le son."
+        }
+        return session.buzzOpen ? "Les joueurs peuvent buzzer maintenant." : "Le buzzer s’active automatiquement au lancement du son."
+    }
+
+    private var tint: Color {
+        if session.firstBuzzPlayerName != nil {
+            return Color(red: 1, green: 0.77, blue: 0)
+        }
+        return session.buzzOpen ? Color(red: 0.3, green: 1, blue: 0.53) : .white.opacity(0.58)
+    }
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Text(title)
+                .font(.system(size: 18, weight: .black, design: .rounded))
+                .foregroundStyle(tint)
+                .multilineTextAlignment(.center)
+
+            Text(subtitle)
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white.opacity(0.72))
+                .multilineTextAlignment(.center)
+
+            if session.buzzOpen || session.firstBuzzPlayerName != nil {
+                Button("RÉINITIALISER LE BUZZER") {
+                    session.resetBuzzer()
+                }
+                .font(.system(size: 12, weight: .black, design: .rounded))
+                .foregroundStyle(Color(red: 1, green: 0.77, blue: 0))
+                .frame(maxWidth: .infinity)
+                .frame(height: 36)
+                .background(Color.black.opacity(0.22))
+                .clipShape(Capsule())
+                .overlay {
+                    Capsule().stroke(Color(red: 1, green: 0.77, blue: 0).opacity(0.65), lineWidth: 1)
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay {
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(tint.opacity(0.72), lineWidth: 1.2)
+        }
     }
 }
 

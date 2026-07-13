@@ -443,6 +443,7 @@ struct ContentView: View {
         playbackSourceName = "ZikAfrica"
         showPlaybackReturn = false
         showPlaybackTransition = false
+        connectedGame.openBuzzerForPlayback()
 
         Task {
             let installedApps = InstalledMusicApps.current
