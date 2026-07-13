@@ -31,6 +31,7 @@ struct ContentView: View {
     @State private var vibrationEnabled = true
     @State private var playbackSourceName = "ZikAfrica"
     @State private var lastPresentedBuzzRound = 0
+    @State private var pendingFirstBuzzName: String?
 
     var body: some View {
         GeometryReader { geometry in
@@ -115,11 +116,11 @@ struct ContentView: View {
                     .zIndex(30)
                 }
 
-                if let buzzName = connectedGame.firstBuzzPlayerName,
-                   connectedGame.buzzRound > lastPresentedBuzzRound,
+                if let buzzName = pendingFirstBuzzName,
                    !showConnectedGame {
                     FirstBuzzPopup(playerName: buzzName) {
                         lastPresentedBuzzRound = connectedGame.buzzRound
+                        pendingFirstBuzzName = nil
                         withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
                             showConnectedGame = true
                         }
@@ -215,6 +216,17 @@ struct ContentView: View {
         .onChange(of: connectedGame.buzzRound) { _, newRound in
             if connectedGame.firstBuzzPlayerName == nil {
                 lastPresentedBuzzRound = max(lastPresentedBuzzRound, newRound - 1)
+                pendingFirstBuzzName = nil
+            }
+        }
+        .onChange(of: connectedGame.firstBuzzPlayerName) { _, newName in
+            guard let newName, connectedGame.buzzRound > lastPresentedBuzzRound else { return }
+            if showConnectedGame == false {
+                withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
+                    pendingFirstBuzzName = newName
+                }
+            } else {
+                pendingFirstBuzzName = nil
             }
         }
     }
@@ -266,6 +278,7 @@ struct ContentView: View {
             TopControlButton(title: connectedGame.isActive ? "SCORES LIVE" : "SCORES", icon: "list.number", tint: .green) {
                 if connectedGame.firstBuzzPlayerName != nil {
                     lastPresentedBuzzRound = max(lastPresentedBuzzRound, connectedGame.buzzRound)
+                    pendingFirstBuzzName = nil
                 }
                 showConnectedGame = true
             }
