@@ -30,8 +30,6 @@ struct ContentView: View {
     @State private var scanSoundEnabled = false
     @State private var vibrationEnabled = true
     @State private var playbackSourceName = "ZikAfrica"
-    @State private var lastPresentedBuzzRound = 0
-    @State private var pendingFirstBuzzName: String?
 
     var body: some View {
         GeometryReader { geometry in
@@ -116,17 +114,22 @@ struct ContentView: View {
                     .zIndex(30)
                 }
 
-                if let buzzName = pendingFirstBuzzName,
+                if let buzzName = connectedGame.firstBuzzAlertName,
                    !showConnectedGame {
-                    FirstBuzzPopup(playerName: buzzName) {
-                        lastPresentedBuzzRound = connectedGame.buzzRound
-                        pendingFirstBuzzName = nil
-                        withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
-                            showConnectedGame = true
+                    ZStack {
+                        Color.black.opacity(0.001)
+                            .ignoresSafeArea()
+
+                        FirstBuzzPopup(playerName: buzzName) {
+                            connectedGame.dismissFirstBuzzAlert()
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
+                                showConnectedGame = true
+                            }
                         }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .transition(.opacity.combined(with: .scale(scale: 0.96)))
-                    .zIndex(35)
+                    .zIndex(80)
                 }
             }
         }
@@ -213,22 +216,6 @@ struct ContentView: View {
         } message: {
             Text("Vérifie que l’application musicale sélectionnée est installée.")
         }
-        .onChange(of: connectedGame.buzzRound) { _, newRound in
-            if connectedGame.firstBuzzPlayerName == nil {
-                lastPresentedBuzzRound = max(lastPresentedBuzzRound, newRound - 1)
-                pendingFirstBuzzName = nil
-            }
-        }
-        .onChange(of: connectedGame.firstBuzzPlayerName) { _, newName in
-            guard let newName, connectedGame.buzzRound > lastPresentedBuzzRound else { return }
-            if showConnectedGame == false {
-                withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
-                    pendingFirstBuzzName = newName
-                }
-            } else {
-                pendingFirstBuzzName = nil
-            }
-        }
     }
 
     private var backgroundOverlay: some View {
@@ -276,10 +263,7 @@ struct ContentView: View {
             }
 
             TopControlButton(title: connectedGame.isActive ? "SCORES LIVE" : "SCORES", icon: "list.number", tint: .green) {
-                if connectedGame.firstBuzzPlayerName != nil {
-                    lastPresentedBuzzRound = max(lastPresentedBuzzRound, connectedGame.buzzRound)
-                    pendingFirstBuzzName = nil
-                }
+                connectedGame.dismissFirstBuzzAlert()
                 showConnectedGame = true
             }
 

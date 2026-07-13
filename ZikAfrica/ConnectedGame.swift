@@ -32,6 +32,7 @@ final class ConnectedGameSession: ObservableObject {
     @Published private(set) var buzzOpen = false
     @Published private(set) var buzzRound = 0
     @Published private(set) var firstBuzzPlayerName: String?
+    @Published private(set) var firstBuzzAlertName: String?
     @Published private(set) var buzzes: [ConnectedBuzz] = []
     @Published var errorMessage: String?
 
@@ -40,6 +41,8 @@ final class ConnectedGameSession: ObservableObject {
     private var gameListener: ListenerRegistration?
     private var buzzListener: ListenerRegistration?
     private var listenedBuzzRound: Int?
+    private var hasReceivedInitialGameSnapshot = false
+    private var lastAlertedBuzzRound = 0
     private var history: [ScoreChange] = []
 
     init() {
@@ -103,7 +106,10 @@ final class ConnectedGameSession: ObservableObject {
         buzzOpen = false
         buzzRound = 0
         firstBuzzPlayerName = nil
+        firstBuzzAlertName = nil
         buzzes = []
+        hasReceivedInitialGameSnapshot = false
+        lastAlertedBuzzRound = 0
         gameCode = Self.newCode()
         pin = Self.newPIN()
         isActive = false
@@ -169,6 +175,7 @@ final class ConnectedGameSession: ObservableObject {
 
     func openBuzzerForPlayback() {
         guard isActive, !isFinished else { return }
+        firstBuzzAlertName = nil
         db.collection("games").document(gameCode).updateData([
             "buzzOpen": true,
             "buzzRound": FieldValue.increment(Int64(1)),
@@ -181,12 +188,17 @@ final class ConnectedGameSession: ObservableObject {
 
     func resetBuzzer() {
         guard isActive, !isFinished else { return }
+        firstBuzzAlertName = nil
         db.collection("games").document(gameCode).updateData([
             "buzzOpen": false,
             "firstBuzzPlayerId": FieldValue.delete(),
             "firstBuzzPlayerName": FieldValue.delete(),
             "firstBuzzAt": FieldValue.delete()
         ])
+    }
+
+    func dismissFirstBuzzAlert() {
+        firstBuzzAlertName = nil
     }
 
     func listenForPlayers() {
@@ -203,6 +215,9 @@ final class ConnectedGameSession: ObservableObject {
                         }
 
                         let data = snapshot?.data() ?? [:]
+                        let isInitialSnapshot = !self.hasReceivedInitialGameSnapshot
+                        self.hasReceivedInitialGameSnapshot = true
+
                         self.buzzOpen = data["buzzOpen"] as? Bool ?? false
                         if let buzzRound = data["buzzRound"] as? Int {
                             self.buzzRound = buzzRound
@@ -211,7 +226,17 @@ final class ConnectedGameSession: ObservableObject {
                         } else {
                             self.buzzRound = 0
                         }
-                        self.firstBuzzPlayerName = data["firstBuzzPlayerName"] as? String
+                        let incomingFirstBuzzName = data["firstBuzzPlayerName"] as? String
+                        self.firstBuzzPlayerName = incomingFirstBuzzName
+                        if isInitialSnapshot {
+                            if incomingFirstBuzzName != nil {
+                                self.lastAlertedBuzzRound = self.buzzRound
+                            }
+                        } else if let incomingFirstBuzzName,
+                                  self.buzzRound > self.lastAlertedBuzzRound {
+                            self.firstBuzzAlertName = incomingFirstBuzzName
+                            self.lastAlertedBuzzRound = self.buzzRound
+                        }
                         self.syncBuzzesForCurrentRound()
                     }
                 }
@@ -245,6 +270,7 @@ final class ConnectedGameSession: ObservableObject {
         buzzListener?.remove()
         buzzListener = nil
         listenedBuzzRound = nil
+        hasReceivedInitialGameSnapshot = false
     }
 
     private func syncBuzzesForCurrentRound() {
