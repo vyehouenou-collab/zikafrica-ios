@@ -9,6 +9,13 @@ struct ConnectedTeam: Identifiable {
     let score: Int
 }
 
+struct ConnectedBuzz: Identifiable {
+    let id: String
+    let playerName: String
+    let round: Int
+    let createdAt: Date?
+}
+
 struct ScoreChange {
     let teamID: String
     let previousScore: Int
@@ -25,11 +32,14 @@ final class ConnectedGameSession: ObservableObject {
     @Published private(set) var buzzOpen = false
     @Published private(set) var buzzRound = 0
     @Published private(set) var firstBuzzPlayerName: String?
+    @Published private(set) var buzzes: [ConnectedBuzz] = []
     @Published var errorMessage: String?
 
     private let db = Firestore.firestore()
     private var playerListener: ListenerRegistration?
     private var gameListener: ListenerRegistration?
+    private var buzzListener: ListenerRegistration?
+    private var listenedBuzzRound: Int?
     private var history: [ScoreChange] = []
 
     init() {
@@ -93,6 +103,7 @@ final class ConnectedGameSession: ObservableObject {
         buzzOpen = false
         buzzRound = 0
         firstBuzzPlayerName = nil
+        buzzes = []
         gameCode = Self.newCode()
         pin = Self.newPIN()
         isActive = false
@@ -201,6 +212,7 @@ final class ConnectedGameSession: ObservableObject {
                             self.buzzRound = 0
                         }
                         self.firstBuzzPlayerName = data["firstBuzzPlayerName"] as? String
+                        self.syncBuzzesForCurrentRound()
                     }
                 }
         }
@@ -230,6 +242,59 @@ final class ConnectedGameSession: ObservableObject {
         playerListener = nil
         gameListener?.remove()
         gameListener = nil
+        buzzListener?.remove()
+        buzzListener = nil
+        listenedBuzzRound = nil
+    }
+
+    private func syncBuzzesForCurrentRound() {
+        if listenedBuzzRound == buzzRound { return }
+        buzzListener?.remove()
+        buzzListener = nil
+        listenedBuzzRound = buzzRound
+
+        buzzListener = db.collection("games").document(gameCode).collection("buzzes")
+            .addSnapshotListener { [weak self] snapshot, error in
+                Task { @MainActor in
+                    guard let self else { return }
+                    if error != nil {
+                        self.errorMessage = "Impossible de synchroniser l’ordre des buzzers."
+                        return
+                    }
+
+                    self.buzzes = snapshot?.documents.compactMap { document in
+                        let data = document.data()
+                        let round: Int
+                        if let value = data["round"] as? Int {
+                            round = value
+                        } else if let value = data["round"] as? NSNumber {
+                            round = value.intValue
+                        } else {
+                            round = -1
+                        }
+
+                        guard round == self.buzzRound else { return nil }
+                        return ConnectedBuzz(
+                            id: document.documentID,
+                            playerName: data["playerName"] as? String ?? "Joueur",
+                            round: round,
+                            createdAt: (data["createdAt"] as? Timestamp)?.dateValue()
+                        )
+                    }
+                    .sorted {
+                        switch ($0.createdAt, $1.createdAt) {
+                        case let (left?, right?):
+                            return left < right
+                        case (.some, nil):
+                            return true
+                        case (nil, .some):
+                            return false
+                        case (nil, nil):
+                            return $0.playerName < $1.playerName
+                        }
+                    } ?? []
+                }
+            }
     }
 
     private func authenticate(completion: @escaping (String) -> Void) {
@@ -492,6 +557,36 @@ private struct ConnectedBuzzerStatus: View {
                 .multilineTextAlignment(.center)
 
             if session.buzzOpen || session.firstBuzzPlayerName != nil {
+                if !session.buzzes.isEmpty {
+                    VStack(alignment: .leading, spacing: 7) {
+                        Text("ORDRE DES BUZZERS")
+                            .font(.system(size: 11, weight: .black, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.62))
+                            .tracking(1.2)
+
+                        ForEach(Array(session.buzzes.enumerated()), id: \.element.id) { index, buzz in
+                            HStack(spacing: 8) {
+                                Text("\(index + 1)")
+                                    .font(.system(size: 12, weight: .black, design: .rounded))
+                                    .foregroundStyle(.black)
+                                    .frame(width: 24, height: 24)
+                                    .background(index == 0 ? Color(red: 1, green: 0.77, blue: 0) : Color.white.opacity(0.72))
+                                    .clipShape(Circle())
+
+                                Text(buzz.playerName)
+                                    .font(.system(size: 14, weight: .black, design: .rounded))
+                                    .foregroundStyle(index == 0 ? Color(red: 1, green: 0.77, blue: 0) : .white)
+                                    .lineLimit(1)
+
+                                Spacer()
+                            }
+                        }
+                    }
+                    .padding(10)
+                    .background(Color.black.opacity(0.26))
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+
                 Button("RÉINITIALISER LE BUZZER") {
                     session.resetBuzzer()
                 }

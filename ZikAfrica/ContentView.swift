@@ -30,6 +30,7 @@ struct ContentView: View {
     @State private var scanSoundEnabled = false
     @State private var vibrationEnabled = true
     @State private var playbackSourceName = "ZikAfrica"
+    @State private var lastPresentedBuzzRound = 0
 
     var body: some View {
         GeometryReader { geometry in
@@ -94,9 +95,6 @@ struct ContentView: View {
                             showScanner = true
                         },
                         onHome: {
-                            DeezerPreviewPlayer.shared.stop()
-                            AppleMusicFullTrackPlayer.shared.stop()
-                            SpotifyFullTrackPlayer.shared.stop()
                             showPlaybackReturn = false
                             showPlaybackTransition = false
                             showScanner = false
@@ -115,6 +113,19 @@ struct ContentView: View {
                     }
                     .transition(.opacity.combined(with: .scale(scale: 0.98)))
                     .zIndex(30)
+                }
+
+                if let buzzName = connectedGame.firstBuzzPlayerName,
+                   connectedGame.buzzRound > lastPresentedBuzzRound,
+                   !showConnectedGame {
+                    FirstBuzzPopup(playerName: buzzName) {
+                        lastPresentedBuzzRound = connectedGame.buzzRound
+                        withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
+                            showConnectedGame = true
+                        }
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                    .zIndex(35)
                 }
             }
         }
@@ -201,6 +212,11 @@ struct ContentView: View {
         } message: {
             Text("Vérifie que l’application musicale sélectionnée est installée.")
         }
+        .onChange(of: connectedGame.buzzRound) { _, newRound in
+            if connectedGame.firstBuzzPlayerName == nil {
+                lastPresentedBuzzRound = max(lastPresentedBuzzRound, newRound - 1)
+            }
+        }
     }
 
     private var backgroundOverlay: some View {
@@ -248,6 +264,9 @@ struct ContentView: View {
             }
 
             TopControlButton(title: connectedGame.isActive ? "SCORES LIVE" : "SCORES", icon: "list.number", tint: .green) {
+                if connectedGame.firstBuzzPlayerName != nil {
+                    lastPresentedBuzzRound = max(lastPresentedBuzzRound, connectedGame.buzzRound)
+                }
                 showConnectedGame = true
             }
 
@@ -758,6 +777,46 @@ struct TopControlButton: View {
                 }
         }
         .buttonStyle(.plain)
+    }
+}
+
+private struct FirstBuzzPopup: View {
+    let playerName: String
+    let onOpenScores: () -> Void
+
+    var body: some View {
+        Button(action: onOpenScores) {
+            VStack(spacing: 11) {
+                Text("BUZZ !")
+                    .font(.system(size: 16, weight: .black, design: .rounded))
+                    .foregroundStyle(Color(red: 0.3, green: 1, blue: 0.53))
+                    .tracking(1.4)
+
+                Text("\(playerName) a buzzé en premier")
+                    .font(.system(size: 22, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.74)
+
+                Text("Appuie ici pour gérer les points et voir l’ordre des buzzers.")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.72))
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 22)
+            .padding(.vertical, 18)
+            .frame(maxWidth: 330)
+            .background(Color.black.opacity(0.95))
+            .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .stroke(Color(red: 1, green: 0.77, blue: 0), lineWidth: 2.5)
+            }
+            .shadow(color: Color(red: 1, green: 0.77, blue: 0).opacity(0.35), radius: 22)
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 24)
     }
 }
 
