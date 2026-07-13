@@ -132,6 +132,21 @@ final class ConnectedGameSession: ObservableObject {
             }
     }
 
+    func removeTeam(_ team: ConnectedTeam) {
+        guard !isFinished else { return }
+        db.collection("games").document(gameCode).collection("players").document(team.id)
+            .delete { [weak self] error in
+                Task { @MainActor in
+                    guard let self else { return }
+                    if error != nil {
+                        self.errorMessage = "Impossible de retirer ce joueur."
+                    } else {
+                        self.history.removeAll { $0.teamID == team.id }
+                    }
+                }
+            }
+    }
+
     func listenForPlayers() {
         guard isActive, listener == nil else { return }
         listener = db.collection("games").document(gameCode).collection("players")
@@ -189,75 +204,131 @@ final class ConnectedGameSession: ObservableObject {
 
 struct ConnectedGameView: View {
     @ObservedObject var session: ConnectedGameSession
-    @Environment(\.dismiss) private var dismiss
+    var onClose: () -> Void
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 14) {
-                    if !session.isActive {
-                        Text("Crée une salle en ligne. Les joueurs rejoignent avec leur téléphone, sans installer l’application.")
-                            .foregroundStyle(.white.opacity(0.82))
+        GeometryReader { geometry in
+            let panelWidth = min(geometry.size.width - 44, 620)
+            let qrSize = min(geometry.size.width * 0.52, 250)
+
+            ZStack {
+                Color.black.opacity(0.58)
+                    .ignoresSafeArea()
+                    .onTapGesture { onClose() }
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 16) {
+                        Text(session.isFinished ? "CLASSEMENT FINAL" : "PARTIE CONNECTÉE")
+                            .font(.system(size: 29, weight: .black, design: .rounded))
+                            .foregroundStyle(Color(red: 1, green: 0.77, blue: 0))
                             .multilineTextAlignment(.center)
+                            .minimumScaleFactor(0.72)
+                            .padding(.top, 8)
 
-                        Button(session.isLoading ? "CRÉATION…" : "CRÉER LA PARTIE") {
-                            session.createGame()
+                        if !session.isActive {
+                            Text("Crée une salle en ligne. Les joueurs rejoignent avec leur téléphone, sans installer l’application.")
+                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.white.opacity(0.82))
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(3)
+                                .padding(.horizontal, 8)
+
+                            Button(session.isLoading ? "CRÉATION…" : "CRÉER LA PARTIE") {
+                                session.createGame()
+                            }
+                            .font(.system(size: 18, weight: .black, design: .rounded))
+                            .foregroundStyle(.black)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 58)
+                            .background(Color(red: 1, green: 0.77, blue: 0))
+                            .clipShape(Capsule())
+                            .disabled(session.isLoading)
+                            .opacity(session.isLoading ? 0.65 : 1)
+                        } else {
+                            if !session.isFinished {
+                                Text("Fais scanner ce QR Code")
+                                    .font(.system(size: 25, weight: .black, design: .rounded))
+                                    .foregroundStyle(.white)
+                                    .multilineTextAlignment(.center)
+
+                                QRCodeImage(text: session.joinURL.absoluteString)
+                                    .frame(width: qrSize, height: qrSize)
+                                    .padding(8)
+                                    .background(Color.white)
+                            }
+
+                            Text("Code : \(session.gameCode)   •   PIN : \(session.pin)")
+                                .font(.system(size: 19, weight: .black, design: .rounded))
+                                .foregroundStyle(Color(red: 1, green: 0.77, blue: 0))
+                                .minimumScaleFactor(0.58)
+                                .lineLimit(1)
+
+                            Text("\(session.teams.count) joueur\(session.teams.count > 1 ? "s" : "") connecté\(session.teams.count > 1 ? "s" : "")")
+                                .font(.system(size: 21, weight: .semibold, design: .rounded))
+                                .foregroundStyle(Color(red: 0.3, green: 1, blue: 0.53))
+
+                            if session.teams.isEmpty {
+                                Text("En attente des joueurs...")
+                                    .font(.system(size: 20, weight: .medium, design: .rounded))
+                                    .foregroundStyle(.white.opacity(0.68))
+                            }
+
+                            ForEach(Array(session.teams.enumerated()), id: \.element.id) { index, team in
+                                ConnectedTeamRow(rank: index + 1, team: team, session: session)
+                            }
+
+                            if !session.isFinished {
+                                Button("↶  ANNULER LE DERNIER POINT") { session.undoLastScore() }
+                                    .font(.system(size: 18, weight: .black, design: .rounded))
+                                    .foregroundStyle(Color(red: 1, green: 0.77, blue: 0))
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 58)
+                                    .background(Color.black.opacity(0.22))
+                                    .clipShape(Capsule())
+                                    .overlay {
+                                        Capsule().stroke(.white.opacity(0.46), lineWidth: 1.5)
+                                    }
+                                    .disabled(!session.canUndo)
+                                    .opacity(session.canUndo ? 1 : 0.42)
+
+                                Button("TERMINER LA PARTIE") { session.finishGame() }
+                                    .font(.system(size: 18, weight: .black, design: .rounded))
+                                    .foregroundStyle(.black)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 58)
+                                    .background(Color(red: 1, green: 0.77, blue: 0))
+                                    .clipShape(Capsule())
+                            }
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.green)
-                        .foregroundStyle(.black)
-                        .disabled(session.isLoading)
-                    } else {
-                        if !session.isFinished {
-                            Text("Fais scanner ce QR Code")
-                                .font(.headline.bold())
-                            QRCodeImage(text: session.joinURL.absoluteString)
-                                .frame(width: 180, height: 180)
+
+                        if let error = session.errorMessage {
+                            Text(error)
+                                .font(.footnote.bold())
+                                .foregroundStyle(Color(red: 1, green: 0.45, blue: 0.45))
+                                .multilineTextAlignment(.center)
                         }
 
-                        Text("Code : \(session.gameCode)  •  PIN : \(session.pin)")
-                            .font(.subheadline.bold())
-                            .foregroundStyle(.yellow)
-                            .minimumScaleFactor(0.75)
-
-                        Text("\(session.teams.count) joueur\(session.teams.count > 1 ? "s" : "") connecté\(session.teams.count > 1 ? "s" : "")")
-                            .foregroundStyle(.green)
-
-                        ForEach(Array(session.teams.enumerated()), id: \.element.id) { index, team in
-                            ConnectedTeamRow(rank: index + 1, team: team, session: session)
-                        }
-
-                        if session.teams.isEmpty {
-                            Text("En attente des joueurs…")
-                                .foregroundStyle(.white.opacity(0.65))
-                        }
-
-                        if !session.isFinished {
-                            Button("↶ ANNULER LE DERNIER POINT") { session.undoLastScore() }
-                                .buttonStyle(.bordered)
-                                .tint(.yellow)
-                                .disabled(!session.canUndo)
-
-                            Button("TERMINER LA PARTIE") { session.finishGame() }
-                                .buttonStyle(.borderedProminent)
-                                .tint(.yellow)
-                                .foregroundStyle(.black)
-                        }
+                        Button("FERMER") { onClose() }
+                            .font(.system(size: 20, weight: .black, design: .rounded))
+                            .foregroundStyle(.white)
+                            .padding(.top, 4)
+                            .padding(.bottom, 2)
                     }
-
-                    if let error = session.errorMessage {
-                        Text(error).foregroundStyle(.red).font(.footnote)
-                    }
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 22)
                 }
-                .padding()
-            }
-            .background(Color.black.ignoresSafeArea())
-            .foregroundStyle(.white)
-            .navigationTitle(session.isFinished ? "Classement final" : "Partie connectée")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Fermer") { dismiss() }
+                .frame(width: panelWidth)
+                .frame(maxHeight: geometry.size.height * 0.74)
+                .background(
+                    RoundedRectangle(cornerRadius: 36, style: .continuous)
+                        .fill(Color.black.opacity(0.9))
+                )
+                .overlay {
+                    RoundedRectangle(cornerRadius: 36, style: .continuous)
+                        .stroke(Color(red: 0.3, green: 1, blue: 0.53), lineWidth: 3)
                 }
+                .shadow(color: Color(red: 0.3, green: 1, blue: 0.53).opacity(0.22), radius: 18)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }
@@ -269,32 +340,57 @@ private struct ConnectedTeamRow: View {
     @ObservedObject var session: ConnectedGameSession
 
     var body: some View {
-        VStack(spacing: 9) {
+        VStack(spacing: 10) {
             HStack {
-                Text("\(rank). \(team.name)").font(.headline.bold())
+                Text("\(rank). \(team.name)")
+                    .font(.system(size: 16, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
                 Spacer()
-                Text("\(team.score) pts").font(.title3.bold()).foregroundStyle(.yellow)
+                Text("\(team.score) pts")
+                    .font(.system(size: 18, weight: .black, design: .rounded))
+                    .foregroundStyle(Color(red: 1, green: 0.77, blue: 0))
             }
             if !session.isFinished {
                 HStack {
-                    scoreButton("-1", .red, -1)
-                    scoreButton("+1", .green, 1)
-                    scoreButton("+2", .yellow, 2)
-                    scoreButton("+3", .yellow, 3)
+                    scoreButton("-1", Color(red: 1, green: 0.4, blue: 0.4), -1)
+                    scoreButton("+1", Color(red: 0.3, green: 1, blue: 0.53), 1)
+                    scoreButton("+2", Color(red: 1, green: 0.77, blue: 0), 2)
+                    scoreButton("+3", Color(red: 1, green: 0.77, blue: 0), 3)
                 }
+
+                Button("RETIRER") { session.removeTeam(team) }
+                    .font(.system(size: 12, weight: .black, design: .rounded))
+                    .foregroundStyle(Color(red: 1, green: 0.45, blue: 0.45))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 34)
+                    .background(Color.black.opacity(0.22))
+                    .clipShape(Capsule())
+                    .overlay {
+                        Capsule().stroke(Color(red: 1, green: 0.45, blue: 0.45).opacity(0.6), lineWidth: 1)
+                    }
             }
         }
-        .padding()
-        .background(Color.white.opacity(0.07))
+        .padding(12)
+        .background(Color.white.opacity(0.06))
         .clipShape(RoundedRectangle(cornerRadius: 18))
-        .overlay { RoundedRectangle(cornerRadius: 18).stroke(Color.green.opacity(0.6)) }
+        .overlay {
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(Color(red: 0.3, green: 1, blue: 0.53).opacity(0.6), lineWidth: 1)
+        }
     }
 
     private func scoreButton(_ title: String, _ color: Color, _ delta: Int) -> some View {
         Button(title) { session.changeScore(for: team, by: delta) }
-            .buttonStyle(.bordered)
-            .tint(color)
+            .font(.system(size: 13, weight: .black, design: .rounded))
+            .foregroundStyle(color)
             .frame(maxWidth: .infinity)
+            .frame(height: 34)
+            .background(Color.black.opacity(0.24))
+            .clipShape(Capsule())
+            .overlay {
+                Capsule().stroke(color.opacity(0.72), lineWidth: 1)
+            }
     }
 }
 

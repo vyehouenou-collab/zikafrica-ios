@@ -106,6 +106,16 @@ struct ContentView: View {
                     .transition(.opacity)
                     .zIndex(20)
                 }
+
+                if showConnectedGame {
+                    ConnectedGameView(session: connectedGame) {
+                        withAnimation(.easeInOut(duration: 0.18)) {
+                            showConnectedGame = false
+                        }
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                    .zIndex(30)
+                }
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -140,9 +150,6 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showRules) {
             RulesView()
-        }
-        .sheet(isPresented: $showConnectedGame) {
-            ConnectedGameView(session: connectedGame)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView(
