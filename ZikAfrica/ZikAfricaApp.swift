@@ -10,6 +10,8 @@ import FirebaseCore
 
 @main
 struct ZikAfricaApp: App {
+    @StateObject private var localization = LocalizationManager.shared
+
     init() {
         FirebaseApp.configure()
     }
@@ -17,6 +19,8 @@ struct ZikAfricaApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .id(localization.currentLanguage)
+                .environment(\.layoutDirection, localization.currentLanguage.isRightToLeft ? .rightToLeft : .leftToRight)
                 .onOpenURL { url in
                     SpotifyFullTrackPlayer.shared.handleOpenURL(url)
                 }

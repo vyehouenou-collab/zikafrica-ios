@@ -21,14 +21,34 @@ enum PlaybackAttempt: Equatable {
 }
 
 struct PlaybackRoutingPolicy {
-    static func fullTrackPlatforms(track: Track, installedApps: InstalledMusicApps) -> [MusicPlatform] {
+    static func fullTrackPlatforms(
+        track: Track,
+        installedApps: InstalledMusicApps,
+        preferredPlatform: MusicPlatform? = nil
+    ) -> [MusicPlatform] {
+        let appleMusicAvailable = installedApps.appleMusic
+        let spotifyAvailable = installedApps.spotify && !track.spotifyUri.isEmpty
+
+        if preferredPlatform == .spotify && spotifyAvailable {
+            // L'utilisateur a explicitement choisi Spotify : on respecte ce choix et on
+            // le tente en premier. Apple Music reste en repli dans le même palier (avant
+            // l'extrait Deezer) si Spotify échoue malgré tout pour cette carte.
+            var platforms: [MusicPlatform] = [.spotify]
+            if appleMusicAvailable {
+                platforms.append(.appleMusic)
+            }
+            return platforms
+        }
+
+        // Ordre par défaut — inchangé pour "aucune préférence", "Apple Music" et
+        // "Deezer" (Deezer n'a de toute façon pas de lecture complète, voir plus bas).
         var platforms: [MusicPlatform] = []
 
-        if installedApps.appleMusic {
+        if appleMusicAvailable {
             platforms.append(.appleMusic)
         }
 
-        if installedApps.spotify, !track.spotifyUri.isEmpty {
+        if spotifyAvailable {
             platforms.append(.spotify)
         }
 
@@ -58,7 +78,11 @@ struct PlaybackRoutingPolicy {
         track: Track,
         installedApps: InstalledMusicApps
     ) -> [PlaybackAttempt] {
-        var result = fullTrackPlatforms(track: track, installedApps: installedApps)
+        var result = fullTrackPlatforms(
+            track: track,
+            installedApps: installedApps,
+            preferredPlatform: preferredPlatform
+        )
             .map { PlaybackAttempt.fullTrack($0) }
 
         result.append(.deezerPreview)

@@ -21,15 +21,15 @@ struct RevealView: View {
                     .scaledToFit()
                     .frame(width: 220)
 
-                Text("🏆 CARTE RÉVÉLÉE")
+                Text(L("reveal_title"))
                     .font(.title2)
                     .fontWeight(.heavy)
                     .foregroundColor(.yellow)
 
                 VStack(spacing: 14) {
-                    RevealLine(icon: "🎵", label: "TITRE", value: track.title, points: "+3 Beats")
-                    RevealLine(icon: "👤", label: "ARTISTE", value: track.artist, points: "+2 Beats")
-                    RevealLine(icon: "📅", label: "ANNÉE", value: track.year, points: "+1 Beat")
+                    RevealLine(icon: "🎵", label: L("reveal_track_label"), value: track.title, points: L("reveal_points_track"))
+                    RevealLine(icon: "👤", label: L("reveal_artist_label"), value: track.artist, points: L("reveal_points_artist"))
+                    RevealLine(icon: "📅", label: L("reveal_year_label"), value: track.year, points: L("reveal_points_year"))
                 }
                 .padding()
                 .background(Color.black.opacity(0.72))
@@ -47,14 +47,14 @@ struct RevealView: View {
                 )
                 .padding(.horizontal, 18)
 
-                Text("Attribuez les jetons Beats correspondants")
+                Text(L("reveal_footer"))
                     .foregroundColor(.white.opacity(0.8))
                     .font(.footnote)
 
                 Button {
                     dismiss()
                 } label: {
-                    Text("FERMER")
+                    Text(L("close_button"))
                         .font(.headline)
                         .fontWeight(.bold)
                         .foregroundColor(.black)

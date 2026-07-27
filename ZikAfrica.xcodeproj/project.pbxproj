@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1D0274AC63DD120655C248E7 /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E705BA6B09888DF2D7BE5D /* Localization.swift */; };
+		B0502632B08D2EEC1964A800 /* Translations.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA967BB95311FE3817A50C8E /* Translations.swift */; };
 		BE20E9DF2FD9186B00CCB775 /* ZikAfricaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20E9DE2FD9186B00CCB775 /* ZikAfricaApp.swift */; };
 		BE20E9E12FD9186B00CCB775 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20E9E02FD9186B00CCB775 /* ContentView.swift */; };
 		BE20E9E32FD9187100CCB775 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BE20E9E22FD9187100CCB775 /* Assets.xcassets */; };
@@ -33,6 +35,7 @@
 		C00100152FE0000000000015 /* SpotifyFullTrackPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00100162FE0000000000016 /* SpotifyFullTrackPlayer.swift */; };
 		C00200012FE1000000000001 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = C00200032FE1000000000003 /* SpotifyiOS */; };
 		C00300012FE2000000000001 /* PlaybackRoutingPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00300022FE2000000000002 /* PlaybackRoutingPolicy.swift */; };
+		F08B65048E4ED6A25DF89D01 /* NoMusicAppInstalledView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0548AEBA5BB2E3AF00B352 /* NoMusicAppInstalledView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +56,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		AA967BB95311FE3817A50C8E /* Translations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Translations.swift; sourceTree = "<group>"; };
 		BE20E9DB2FD9186B00CCB775 /* ZikAfrica.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZikAfrica.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BE20E9DE2FD9186B00CCB775 /* ZikAfricaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZikAfricaApp.swift; sourceTree = "<group>"; };
 		BE20E9E02FD9186B00CCB775 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -81,6 +85,8 @@
 		C00100162FE0000000000016 /* SpotifyFullTrackPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyFullTrackPlayer.swift; sourceTree = "<group>"; };
 		C00100172FE0000000000017 /* ZikAfrica.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ZikAfrica.entitlements; sourceTree = "<group>"; };
 		C00300022FE2000000000002 /* PlaybackRoutingPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackRoutingPolicy.swift; sourceTree = "<group>"; };
+		C1E705BA6B09888DF2D7BE5D /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
+		DD0548AEBA5BB2E3AF00B352 /* NoMusicAppInstalledView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoMusicAppInstalledView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -147,6 +153,9 @@
 				BE20EA102FD93A1300CCB775 /* tracks.json */,
 				BE20EA122FD9C2ED00CCB775 /* RulesView.swift */,
 				BE20EA142FD9C62800CCB775 /* Platform.swift */,
+				DD0548AEBA5BB2E3AF00B352 /* NoMusicAppInstalledView.swift */,
+				C1E705BA6B09888DF2D7BE5D /* Localization.swift */,
+				AA967BB95311FE3817A50C8E /* Translations.swift */,
 				BE20EA162FD9C89C00CCB775 /* MusicAppDetector.swift */,
 				BE20EA192FD9CC1B00CCB775 /* PlatformChoiceView.swift */,
 				BE20EA1B2FD9CDF500CCB775 /* MusicPlayerManager.swift */,
@@ -278,11 +287,11 @@
 				Base,
 			);
 			mainGroup = BE20E9D22FD9186B00CCB775;
-			productRefGroup = BE20E9DC2FD9186B00CCB775 /* Products */;
 			packageReferences = (
 				C00100082FE0000000000008 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				C00200022FE1000000000002 /* XCRemoteSwiftPackageReference "ios-sdk" */,
 			);
+			productRefGroup = BE20E9DC2FD9186B00CCB775 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -336,6 +345,9 @@
 				BE20EA172FD9C89C00CCB775 /* MusicAppDetector.swift in Sources */,
 				BE20EA0B2FD9319F00CCB775 /* Track.swift in Sources */,
 				BE20EA152FD9C62800CCB775 /* Platform.swift in Sources */,
+				F08B65048E4ED6A25DF89D01 /* NoMusicAppInstalledView.swift in Sources */,
+				1D0274AC63DD120655C248E7 /* Localization.swift in Sources */,
+				B0502632B08D2EEC1964A800 /* Translations.swift in Sources */,
 				BE20EA1C2FD9CDF500CCB775 /* MusicPlayerManager.swift in Sources */,
 				C00300012FE2000000000001 /* PlaybackRoutingPolicy.swift in Sources */,
 				C00100132FE0000000000013 /* AppleMusicFullTrackPlayer.swift in Sources */,
@@ -503,7 +515,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 27;
 				DEVELOPMENT_ASSET_PATHS = "\"ZikAfrica/Preview Content\"";
 				DEVELOPMENT_TEAM = 8H443Z4286;
 				ENABLE_PREVIEWS = YES;
@@ -520,7 +532,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.zikafrica.ZikAfrica;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -535,7 +547,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 27;
 				DEVELOPMENT_ASSET_PATHS = "\"ZikAfrica/Preview Content\"";
 				DEVELOPMENT_TEAM = 8H443Z4286;
 				ENABLE_PREVIEWS = YES;
@@ -552,7 +564,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.zikafrica.ZikAfrica;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

@@ -80,7 +80,7 @@ final class ConnectedGameSession: ObservableObject {
                 Task { @MainActor in
                     self.isLoading = false
                     if error != nil {
-                        self.errorMessage = "Impossible de créer la partie en ligne."
+                        self.errorMessage = L("connected_error_create_game")
                     } else {
                         self.isActive = true
                         self.isFinished = false
@@ -165,7 +165,7 @@ final class ConnectedGameSession: ObservableObject {
                 Task { @MainActor in
                     guard let self else { return }
                     if error != nil {
-                        self.errorMessage = "Impossible de retirer ce joueur."
+                        self.errorMessage = L("connected_error_remove_player")
                     } else {
                         self.history.removeAll { $0.teamID == team.id }
                     }
@@ -210,7 +210,7 @@ final class ConnectedGameSession: ObservableObject {
                     Task { @MainActor in
                         guard let self else { return }
                         if error != nil {
-                            self.errorMessage = "Impossible de synchroniser le buzzer."
+                            self.errorMessage = L("connected_error_sync_buzzer")
                             return
                         }
 
@@ -248,13 +248,13 @@ final class ConnectedGameSession: ObservableObject {
                 Task { @MainActor in
                     guard let self else { return }
                     if error != nil {
-                        self.errorMessage = "Impossible de synchroniser les joueurs."
+                        self.errorMessage = L("connected_error_sync_players")
                         return
                     }
                     self.teams = snapshot?.documents.map {
                         ConnectedTeam(
                             id: $0.documentID,
-                            name: $0.data()["name"] as? String ?? "Équipe",
+                            name: $0.data()["name"] as? String ?? L("connected_default_team_name"),
                             score: $0.data()["score"] as? Int ?? 0
                         )
                     }.sorted { $0.score > $1.score } ?? []
@@ -284,7 +284,7 @@ final class ConnectedGameSession: ObservableObject {
                 Task { @MainActor in
                     guard let self else { return }
                     if error != nil {
-                        self.errorMessage = "Impossible de synchroniser l’ordre des buzzers."
+                        self.errorMessage = L("connected_error_sync_buzz_order")
                         return
                     }
 
@@ -302,7 +302,7 @@ final class ConnectedGameSession: ObservableObject {
                         guard round == self.buzzRound else { return nil }
                         return ConnectedBuzz(
                             id: document.documentID,
-                            playerName: data["playerName"] as? String ?? "Joueur",
+                            playerName: data["playerName"] as? String ?? L("connected_default_player_name"),
                             round: round,
                             createdAt: (data["createdAt"] as? Timestamp)?.dateValue()
                         )
@@ -334,7 +334,7 @@ final class ConnectedGameSession: ObservableObject {
                     completion(uid)
                 } else {
                     self.isLoading = false
-                    self.errorMessage = "Connexion Firebase impossible."
+                    self.errorMessage = L("connected_error_firebase_auth")
                 }
             }
         }
@@ -368,7 +368,7 @@ struct ConnectedGameView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 16) {
-                        Text(session.isFinished ? "CLASSEMENT FINAL" : "PARTIE CONNECTÉE")
+                        Text(session.isFinished ? L("connected_final_ranking") : L("connected_game_title"))
                             .font(.system(size: 29, weight: .black, design: .rounded))
                             .foregroundStyle(Color(red: 1, green: 0.77, blue: 0))
                             .multilineTextAlignment(.center)
@@ -376,14 +376,14 @@ struct ConnectedGameView: View {
                             .padding(.top, 8)
 
                         if !session.isActive {
-                            Text("Crée une salle en ligne. Les joueurs rejoignent avec leur téléphone, sans installer l’application.")
+                            Text(L("connected_intro"))
                                 .font(.system(size: 16, weight: .semibold, design: .rounded))
                                 .foregroundStyle(.white.opacity(0.82))
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(3)
                                 .padding(.horizontal, 8)
 
-                            Button(session.isLoading ? "CRÉATION…" : "CRÉER LA PARTIE") {
+                            Button(session.isLoading ? L("connected_creating") : L("connected_create_button")) {
                                 session.createGame()
                             }
                             .font(.system(size: 18, weight: .black, design: .rounded))
@@ -396,7 +396,7 @@ struct ConnectedGameView: View {
                             .opacity(session.isLoading ? 0.65 : 1)
                         } else {
                             if !session.isFinished {
-                                Text("Fais scanner ce QR Code")
+                                Text(L("connected_scan_qr"))
                                     .font(.system(size: 25, weight: .black, design: .rounded))
                                     .foregroundStyle(.white)
                                     .multilineTextAlignment(.center)
@@ -407,20 +407,20 @@ struct ConnectedGameView: View {
                                     .background(Color.white)
                             }
 
-                            Text("Code : \(session.gameCode)   •   PIN : \(session.pin)")
+                            Text(String(format: L("connected_code_pin_format"), session.gameCode, session.pin))
                                 .font(.system(size: 19, weight: .black, design: .rounded))
                                 .foregroundStyle(Color(red: 1, green: 0.77, blue: 0))
                                 .minimumScaleFactor(0.58)
                                 .lineLimit(1)
 
-                            Text("\(session.teams.count) joueur\(session.teams.count > 1 ? "s" : "") connecté\(session.teams.count > 1 ? "s" : "")")
+                            Text(String(format: L(session.teams.count > 1 ? "connected_players_plural_format" : "connected_players_singular_format"), session.teams.count))
                                 .font(.system(size: 21, weight: .semibold, design: .rounded))
                                 .foregroundStyle(Color(red: 0.3, green: 1, blue: 0.53))
 
                             ConnectedBuzzerStatus(session: session)
 
                             if session.teams.isEmpty {
-                                Text("En attente des joueurs...")
+                                Text(L("connected_waiting_players"))
                                     .font(.system(size: 20, weight: .medium, design: .rounded))
                                     .foregroundStyle(.white.opacity(0.68))
                             }
@@ -430,7 +430,7 @@ struct ConnectedGameView: View {
                             }
 
                             if !session.isFinished {
-                                Button("↶  ANNULER LE DERNIER POINT") { session.undoLastScore() }
+                                Button(L("connected_undo_last_point")) { session.undoLastScore() }
                                     .font(.system(size: 18, weight: .black, design: .rounded))
                                     .foregroundStyle(Color(red: 1, green: 0.77, blue: 0))
                                     .frame(maxWidth: .infinity)
@@ -443,7 +443,7 @@ struct ConnectedGameView: View {
                                     .disabled(!session.canUndo)
                                     .opacity(session.canUndo ? 1 : 0.42)
 
-                                Button("TERMINER LA PARTIE") { session.finishGame() }
+                                Button(L("connected_finish_game")) { session.finishGame() }
                                     .font(.system(size: 18, weight: .black, design: .rounded))
                                     .foregroundStyle(.black)
                                     .frame(maxWidth: .infinity)
@@ -460,7 +460,7 @@ struct ConnectedGameView: View {
                                 .multilineTextAlignment(.center)
                         }
 
-                        Button("FERMER") { onClose() }
+                        Button(L("close_button")) { onClose() }
                             .font(.system(size: 20, weight: .black, design: .rounded))
                             .foregroundStyle(.white)
                             .padding(.top, 4)
@@ -499,7 +499,7 @@ private struct ConnectedTeamRow: View {
                     .foregroundStyle(.white)
                     .lineLimit(1)
                 Spacer()
-                Text("\(team.score) pts")
+                Text(String(format: L("connected_points_suffix_format"), team.score))
                     .font(.system(size: 18, weight: .black, design: .rounded))
                     .foregroundStyle(Color(red: 1, green: 0.77, blue: 0))
             }
@@ -511,7 +511,7 @@ private struct ConnectedTeamRow: View {
                     scoreButton("+3", Color(red: 1, green: 0.77, blue: 0), 3)
                 }
 
-                Button("RETIRER") { session.removeTeam(team) }
+                Button(L("connected_remove_button")) { session.removeTeam(team) }
                     .font(.system(size: 12, weight: .black, design: .rounded))
                     .foregroundStyle(Color(red: 1, green: 0.45, blue: 0.45))
                     .frame(maxWidth: .infinity)
@@ -551,16 +551,16 @@ private struct ConnectedBuzzerStatus: View {
 
     private var title: String {
         if let name = session.firstBuzzPlayerName {
-            return "Premier buzz : \(name)"
+            return String(format: L("connected_first_buzz_format"), name)
         }
-        return session.buzzOpen ? "BUZZER OUVERT" : "Buzzer en attente"
+        return session.buzzOpen ? L("connected_buzzer_open") : L("connected_buzzer_waiting")
     }
 
     private var subtitle: String {
         if session.firstBuzzPlayerName != nil {
-            return "Attribue les points, puis relance une carte ou rejoue le son."
+            return L("connected_buzzer_hint_assign")
         }
-        return session.buzzOpen ? "Les joueurs peuvent buzzer maintenant." : "Le buzzer s’active automatiquement au lancement du son."
+        return session.buzzOpen ? L("connected_buzzer_hint_open") : L("connected_buzzer_hint_idle")
     }
 
     private var tint: Color {
@@ -585,7 +585,7 @@ private struct ConnectedBuzzerStatus: View {
             if session.buzzOpen || session.firstBuzzPlayerName != nil {
                 if !session.buzzes.isEmpty {
                     VStack(alignment: .leading, spacing: 7) {
-                        Text("ORDRE DES BUZZERS")
+                        Text(L("connected_buzz_order"))
                             .font(.system(size: 11, weight: .black, design: .rounded))
                             .foregroundStyle(.white.opacity(0.62))
                             .tracking(1.2)
@@ -613,7 +613,7 @@ private struct ConnectedBuzzerStatus: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
 
-                Button("RÉINITIALISER LE BUZZER") {
+                Button(L("connected_reset_buzzer")) {
                     session.resetBuzzer()
                 }
                 .font(.system(size: 12, weight: .black, design: .rounded))

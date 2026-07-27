@@ -11,23 +11,23 @@ struct RulesView: View {
 
             VStack(spacing: 18) {
 
-                Text("🎮 RÈGLES DU JEU")
+                Text(L("rules_title"))
                     .foregroundColor(.yellow)
                     .font(.title2)
                     .fontWeight(.heavy)
 
-                RuleLine(number: "1", text: "Scanne une carte ZikAfrica.")
-                RuleLine(number: "2", text: "La musique se lance.")
-                RuleLine(number: "3", text: "Devine le titre, l’artiste ou l’année.")
-                RuleLine(number: "4", text: "Gagne 3, 2 ou 1 Beats.")
-                RuleLine(number: "5", text: "Le meilleur score gagne.")
+                RuleLine(number: "1", text: L("rules_step1"))
+                RuleLine(number: "2", text: L("rules_step2"))
+                RuleLine(number: "3", text: L("rules_step3"))
+                RuleLine(number: "4", text: L("rules_step4"))
+                RuleLine(number: "5", text: L("rules_step5"))
 
                 Spacer()
 
                 Button {
                     dismiss()
                 } label: {
-                    Text("FERMER")
+                    Text(L("close_button"))
                         .font(.headline)
                         .fontWeight(.bold)
                         .foregroundColor(.black)

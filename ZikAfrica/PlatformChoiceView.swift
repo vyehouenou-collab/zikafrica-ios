@@ -10,7 +10,7 @@ struct PlatformChoiceView: View {
             VStack(spacing: 22) {
                 SpeakerBeatLogo(width: 300)
 
-                Text("🎧 CHOISIS TA PLATEFORME")
+                Text(L("platform_choice_title"))
                     .foregroundColor(.yellow)
                     .font(.title2)
                     .fontWeight(.heavy)

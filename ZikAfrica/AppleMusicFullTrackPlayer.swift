@@ -2,6 +2,18 @@ import Foundation
 import MediaPlayer
 import StoreKit
 
+enum AppleMusicPlaybackOutcome: Equatable {
+    case success
+    /// L'utilisateur a refusé l'accès à sa médiathèque/son compte Apple Music.
+    case authorizationDenied
+    /// Apple Music est installé et autorisé, mais aucun abonnement actif ne permet
+    /// de lire le catalogue complet (ex: pas d'abonnement, ou abonnement expiré).
+    case noActiveSubscription
+    /// Le titre n'a pas été retrouvé dans le catalogue Apple Music (aucun storeId
+    /// fourni et la recherche par titre/artiste n'a rien donné).
+    case trackNotFound
+}
+
 @MainActor
 final class AppleMusicFullTrackPlayer {
     static let shared = AppleMusicFullTrackPlayer()
@@ -24,23 +36,23 @@ final class AppleMusicFullTrackPlayer {
 
     private init() {}
 
-    func play(track: Track) async -> Bool {
+    func play(track: Track) async -> AppleMusicPlaybackOutcome {
         guard await requestAuthorization() else {
-            return false
+            return .authorizationDenied
         }
 
         guard await canPlayAppleMusicCatalog() else {
-            return false
+            return .noActiveSubscription
         }
 
         let storeId = await resolveStoreId(for: track)
         guard !storeId.isEmpty else {
-            return false
+            return .trackNotFound
         }
 
         player.setQueue(with: [storeId])
         player.play()
-        return true
+        return .success
     }
 
     func stop() {

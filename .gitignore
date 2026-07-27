@@ -15,3 +15,7 @@ xcuserdata/
 *.xcarchive
 *.xcresult
 *.log
+
+# Local backups / secrets
+*.bak*
+*.pem

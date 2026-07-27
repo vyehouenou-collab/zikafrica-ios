@@ -20,11 +20,20 @@ struct ContentView: View {
     @State private var showPlatformChoice = false
     @State private var scanCount = 0
     @State private var showPlaybackTransition = false
+    @State private var isLeavingApp = false
     @State private var showPlaybackReturn = false
     @State private var awaitingMusicAppReturn = false
     @State private var showMusicAppError = false
     @State private var showAppleMusicRecommendation = false
+    @State private var showAppleMusicSubscriptionSuggestion = false
+    @State private var showAppleMusicAuthorizationBlocked = false
+    @State private var showAppleMusicTrackUnavailable = false
+    @State private var showSpotifyPlaybackIssue = false
+    @State private var hasShownAppleMusicTrackUnavailable = false
+    @State private var hasShownSpotifyPlaybackIssue = false
     @State private var showPlatformChoiceAfterAppleMusicRecommendation = false
+    @State private var showInstallPromptAfterAppleMusicRecommendation = false
+    @State private var showNoMusicAppInstalled = false
     @State private var showConnectedGame = false
     @State private var showSettings = false
     @State private var scanSoundEnabled = false
@@ -72,7 +81,7 @@ struct ContentView: View {
                 }
 
                 if showPlaybackTransition {
-                    PlaybackTransitionView(sourceName: playbackSourceName)
+                    PlaybackTransitionView(sourceName: playbackSourceName, isLeavingApp: isLeavingApp)
                         .transition(.opacity)
                         .zIndex(20)
                 }
@@ -83,7 +92,7 @@ struct ContentView: View {
                         sourceName: playbackSourceName,
                         onReplay: {
                             showPlaybackReturn = false
-                            playTrack(track: track)
+                            playTrack(track: track, fallbackPlatform: selectedPlatform)
                         },
                         onReveal: {
                             showPlaybackReturn = false
@@ -183,6 +192,14 @@ struct ContentView: View {
                 showPlatformChoice = false
             }
         }
+        .sheet(isPresented: $showNoMusicAppInstalled) {
+            NoMusicAppInstalledView(
+                onOpenSpotify: openSpotifyDownloadPage,
+                onOpenAppleMusic: openAppleMusicDownloadPage,
+                onOpenDeezer: openDeezerDownloadPage,
+                onDismiss: { showNoMusicAppInstalled = false }
+            )
+        }
         .onAppear {
             configureApp()
             UIApplication.shared.isIdleTimerDisabled = true
@@ -200,21 +217,42 @@ struct ContentView: View {
                 showPlaybackReturn = true
             }
         }
-        .alert("Apple Music recommandé", isPresented: $showAppleMusicRecommendation) {
-            Button("Télécharger Apple Music") {
+        .alert(L("apple_music_recommend_title"), isPresented: $showAppleMusicRecommendation) {
+            Button(L("download_apple_music_button")) {
                 openAppleMusicDownloadPage()
                 showDeferredPlatformChoiceIfNeeded()
             }
-            Button("Continuer", role: .cancel) {
+            Button(L("continue_button"), role: .cancel) {
                 showDeferredPlatformChoiceIfNeeded()
             }
         } message: {
-            Text("Pour une expérience ZikAfrica plus fluide sur iPhone, Apple Music permet de lancer les titres directement dans l’app et de garder tout le suspense du jeu. Tu peux continuer avec les options disponibles, mais Apple Music offrira le meilleur confort de jeu.")
+            Text(L("apple_music_recommend_message"))
         }
-        .alert("Impossible d’ouvrir la plateforme", isPresented: $showMusicAppError) {
-            Button("OK", role: .cancel) {}
+        .alert(L("platform_open_error_title"), isPresented: $showMusicAppError) {
+            Button(L("ok_button"), role: .cancel) {}
         } message: {
-            Text("Vérifie que l’application musicale sélectionnée est installée.")
+            Text(L("platform_open_error_message"))
+        }
+        .alert(L("apple_music_subscription_title"), isPresented: $showAppleMusicSubscriptionSuggestion) {
+            Button(L("ok_button"), role: .cancel) {}
+        } message: {
+            Text(L("apple_music_subscription_message"))
+        }
+        .alert(L("apple_music_auth_blocked_title"), isPresented: $showAppleMusicAuthorizationBlocked) {
+            Button(L("open_settings_button")) { openAppSettings() }
+            Button(L("continue_button"), role: .cancel) {}
+        } message: {
+            Text(L("apple_music_auth_blocked_message"))
+        }
+        .alert(L("apple_music_track_unavailable_title"), isPresented: $showAppleMusicTrackUnavailable) {
+            Button(L("ok_button"), role: .cancel) {}
+        } message: {
+            Text(L("apple_music_track_unavailable_message"))
+        }
+        .alert(L("spotify_issue_title"), isPresented: $showSpotifyPlaybackIssue) {
+            Button(L("ok_button"), role: .cancel) {}
+        } message: {
+            Text(L("spotify_issue_message"))
         }
     }
 
@@ -258,16 +296,16 @@ struct ContentView: View {
 
     private var topControlBar: some View {
         HStack(spacing: 8) {
-            TopControlButton(title: "RÈGLES", icon: "book.closed.fill", tint: .white) {
+            TopControlButton(title: L("top_rules"), icon: "book.closed.fill", tint: .white) {
                 showRules = true
             }
 
-            TopControlButton(title: connectedGame.isActive ? "SCORES LIVE" : "SCORES", icon: "list.number", tint: .green) {
+            TopControlButton(title: connectedGame.isActive ? L("top_scores_live") : L("top_scores"), icon: "list.number", tint: .green) {
                 connectedGame.dismissFirstBuzzAlert()
                 showConnectedGame = true
             }
 
-            TopControlButton(title: "AJUST.", icon: "slider.horizontal.3", tint: .yellow) {
+            TopControlButton(title: L("top_settings"), icon: "slider.horizontal.3", tint: .yellow) {
                 showSettings = true
             }
         }
@@ -275,17 +313,17 @@ struct ContentView: View {
 
     private var gameButtons: some View {
         HStack(spacing: 8) {
-            gameButton("Rejouer", icon: "arrow.counterclockwise", disabled: lastTrack == nil) {
+            gameButton(L("button_replay"), icon: "arrow.counterclockwise", disabled: lastTrack == nil) {
                 if let track = lastTrack {
-                    playTrack(track: track)
+                    playTrack(track: track, fallbackPlatform: selectedPlatform)
                 }
             }
 
-            gameButton("Révéler", icon: "trophy.fill", disabled: lastTrack == nil) {
+            gameButton(L("button_reveal"), icon: "trophy.fill", disabled: lastTrack == nil) {
                 selectedTrack = lastTrack
             }
 
-            gameButton("Nouvelle partie", icon: "plus.circle.fill") {
+            gameButton(L("button_new_game"), icon: "plus.circle.fill") {
                 connectedGame.startNewSession()
                 scannedCode = ""
                 selectedTrack = nil
@@ -331,7 +369,7 @@ struct ContentView: View {
                 .background(Color.black.opacity(0.82))
                 .clipShape(Capsule())
         } else {
-            Label("Aucune plateforme", systemImage: "exclamationmark.triangle.fill")
+            Label(L("no_platform"), systemImage: "exclamationmark.triangle.fill")
                 .foregroundColor(.orange)
                 .font(.subheadline.bold())
                 .padding(.horizontal, 14)
@@ -352,9 +390,9 @@ struct ContentView: View {
         } label: {
             ZStack {
                 VStack(spacing: 1) {
-                    Text("SCANNER")
+                    Text(L("scan_line1"))
                         .foregroundColor(.white)
-                    Text("UNE CARTE")
+                    Text(L("scan_line2"))
                         .foregroundColor(.yellow)
                 }
                 .font(.system(size: 21, weight: .black, design: .rounded))
@@ -401,9 +439,9 @@ struct ContentView: View {
 
     private var actionCards: some View {
         HStack(spacing: 8) {
-            ActionCard(emoji: "▣", title: "SCANNE", subtitle: "Scanne une carte")
-            ActionCard(emoji: "🎧", title: "ÉCOUTE", subtitle: "La musique se lance")
-            ActionCard(emoji: "🏆", title: "DEVINE", subtitle: "Trouve le titre")
+            ActionCard(emoji: "▣", title: L("card_scan_title"), subtitle: L("card_scan_subtitle"))
+            ActionCard(emoji: "🎧", title: L("card_listen_title"), subtitle: L("card_listen_subtitle"))
+            ActionCard(emoji: "🏆", title: L("card_guess_title"), subtitle: L("card_guess_subtitle"))
         }
     }
 
@@ -412,7 +450,7 @@ struct ContentView: View {
             Image(systemName: "rectangle.on.rectangle.angled")
                 .font(.title3)
 
-            Text("\(scanCount) carte\(scanCount > 1 ? "s" : "") jouée\(scanCount > 1 ? "s" : "")")
+            Text(String(format: L(scanCount > 1 ? "scan_counter_plural_format" : "scan_counter_singular_format"), scanCount))
                 .font(.subheadline.bold())
         }
         .foregroundColor(.yellow)
@@ -458,13 +496,18 @@ struct ContentView: View {
     private func playTrack(track: Track, fallbackPlatform: MusicPlatform? = nil) {
         playbackSourceName = "ZikAfrica"
         showPlaybackReturn = false
+        isLeavingApp = false
         showPlaybackTransition = false
         connectedGame.openBuzzerForPlayback()
 
         Task {
             let installedApps = InstalledMusicApps.current
 
-            for platform in PlaybackRoutingPolicy.fullTrackPlatforms(track: track, installedApps: installedApps) {
+            for platform in PlaybackRoutingPolicy.fullTrackPlatforms(
+                track: track,
+                installedApps: installedApps,
+                preferredPlatform: fallbackPlatform
+            ) {
                 let fullTrackStarted = await playFullTrackIfAvailable(
                     track: track,
                     platform: platform
@@ -505,11 +548,47 @@ struct ContentView: View {
         switch platform {
         case .appleMusic:
             playbackSourceName = "Apple Music"
-            return await AppleMusicFullTrackPlayer.shared.play(track: track)
+            let outcome = await AppleMusicFullTrackPlayer.shared.play(track: track)
+
+            switch outcome {
+            case .noActiveSubscription:
+                // Repli automatique : la boucle continue vers Spotify puis Deezer,
+                // ce message ne bloque rien (voir plus bas dans playTrack()).
+                showAppleMusicSubscriptionSuggestion = true
+
+            case .authorizationDenied:
+                // Vraie permission iOS : on peut réellement guider l'utilisateur vers
+                // Réglages pour la débloquer, contrairement aux deux autres cas ci-dessous.
+                showAppleMusicAuthorizationBlocked = true
+
+            case .trackNotFound:
+                // Pas une histoire de permission : le titre n'existe simplement pas
+                // dans le catalogue Apple Music. Affiché une seule fois par session
+                // pour ne pas répéter un message purement informatif à chaque scan.
+                if !hasShownAppleMusicTrackUnavailable {
+                    hasShownAppleMusicTrackUnavailable = true
+                    showAppleMusicTrackUnavailable = true
+                }
+
+            case .success:
+                break
+            }
+
+            return outcome == .success
 
         case .spotify:
             playbackSourceName = "Spotify"
-            return await SpotifyFullTrackPlayer.shared.play(track: track)
+            let started = await SpotifyFullTrackPlayer.shared.play(track: track)
+
+            if !started, !hasShownSpotifyPlaybackIssue {
+                // Pas une histoire de permission iOS non plus : la cause la plus
+                // fréquente est un compte gratuit (Premium requis côté Spotify pour
+                // jouer un titre précis), qui ne se "débloque" par aucun réglage.
+                hasShownSpotifyPlaybackIssue = true
+                showSpotifyPlaybackIssue = true
+            }
+
+            return started
 
         case .deezer:
             return false
@@ -530,6 +609,7 @@ struct ContentView: View {
     private func launchMusicApp(track: Track, platform: MusicPlatform) {
         withAnimation(.easeInOut(duration: 0.18)) {
             playbackSourceName = platform.rawValue
+            isLeavingApp = true
             showPlaybackReturn = false
             showPlaybackTransition = true
         }
@@ -542,7 +622,7 @@ struct ContentView: View {
             }
         }
         #else
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             MusicPlayerManager.play(track: track, platform: platform) { opened in
                 DispatchQueue.main.async {
                     if opened {
@@ -572,6 +652,13 @@ struct ContentView: View {
         let hasSpotify = MusicAppDetector.isSpotifyInstalled()
         let hasDeezer = MusicAppDetector.isDeezerInstalled()
 
+        if hasSpotify {
+            // Préchauffage : même si Apple Music est la plateforme principale ci-dessous,
+            // Spotify peut être sollicité automatiquement en repli (ex: Apple Music sans
+            // abonnement actif) — autant que sa connexion soit déjà prête à ce moment-là.
+            SpotifyFullTrackPlayer.shared.warmUp()
+        }
+
         if hasAppleMusic {
             selectedPlatform = .appleMusic
             showPlatformChoice = false
@@ -591,7 +678,7 @@ struct ContentView: View {
         } else {
             selectedPlatform = nil
             showPlatformChoice = false
-            showPlatformChoiceAfterAppleMusicRecommendation = true
+            showInstallPromptAfterAppleMusicRecommendation = true
             scheduleAppleMusicRecommendation()
         }
         #endif
@@ -614,18 +701,45 @@ struct ContentView: View {
     }
 
     private func showDeferredPlatformChoiceIfNeeded() {
-        guard showPlatformChoiceAfterAppleMusicRecommendation else {
+        if showPlatformChoiceAfterAppleMusicRecommendation {
+            showPlatformChoiceAfterAppleMusicRecommendation = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                showPlatformChoice = true
+            }
+        } else if showInstallPromptAfterAppleMusicRecommendation {
+            showInstallPromptAfterAppleMusicRecommendation = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                showNoMusicAppInstalled = true
+            }
+        }
+    }
+
+    private func openAppSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else {
             return
         }
 
-        showPlatformChoiceAfterAppleMusicRecommendation = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            showPlatformChoice = true
-        }
+        UIApplication.shared.open(url)
     }
 
     private func openAppleMusicDownloadPage() {
         guard let url = URL(string: "https://apps.apple.com/app/apple-music/id1108187390") else {
+            return
+        }
+
+        UIApplication.shared.open(url)
+    }
+
+    private func openSpotifyDownloadPage() {
+        guard let url = URL(string: "https://apps.apple.com/app/spotify-music-and-podcasts/id324684580") else {
+            return
+        }
+
+        UIApplication.shared.open(url)
+    }
+
+    private func openDeezerDownloadPage() {
+        guard let url = URL(string: "https://apps.apple.com/app/deezer-music-podcast-player/id292738169") else {
             return
         }
 
@@ -642,8 +756,8 @@ enum PlaybackReturnNotification {
 
     static func schedule(platform: MusicPlatform) {
         let content = UNMutableNotificationContent()
-        content.title = "Retourne dans ZikAfrica"
-        content.body = "La musique joue sur \(platform.rawValue). Reviens dans ZikAfrica pour deviner la carte."
+        content.title = L("notif_return_title")
+        content.body = String(format: L("notif_return_body_format"), platform.rawValue)
         content.sound = .default
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 3, repeats: false)
@@ -784,19 +898,19 @@ private struct FirstBuzzPopup: View {
     var body: some View {
         Button(action: onOpenScores) {
             VStack(spacing: 11) {
-                Text("BUZZ !")
+                Text(L("buzz_title"))
                     .font(.system(size: 16, weight: .black, design: .rounded))
                     .foregroundStyle(Color(red: 0.3, green: 1, blue: 0.53))
                     .tracking(1.4)
 
-                Text("\(playerName) a buzzé en premier")
+                Text(String(format: L("buzz_player_format"), playerName))
                     .font(.system(size: 22, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .minimumScaleFactor(0.74)
 
-                Text("Appuie ici pour gérer les points et voir l’ordre des buzzers.")
+                Text(L("buzz_hint"))
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.72))
                     .multilineTextAlignment(.center)
@@ -823,6 +937,7 @@ struct SettingsView: View {
     let selectedPlatform: MusicPlatform?
     let onChangePlatform: () -> Void
 
+    @ObservedObject private var localization = LocalizationManager.shared
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -840,19 +955,42 @@ struct SettingsView: View {
                     .scaledToFit()
                     .frame(width: 210)
 
-                Text("AJUSTEMENTS")
+                Text(L("settings_title"))
                     .font(.title.bold())
                     .foregroundColor(.yellow)
 
                 VStack(spacing: 14) {
-                    Toggle("Son du scan", isOn: $scanSoundEnabled)
-                    Toggle("Vibrations", isOn: $vibrationEnabled)
+                    Toggle(L("settings_scan_sound"), isOn: $scanSoundEnabled)
+                    Toggle(L("settings_vibration"), isOn: $vibrationEnabled)
 
                     Button(action: onChangePlatform) {
                         HStack {
-                            Label("Changer de plateforme", systemImage: "headphones")
+                            Label(L("settings_change_platform"), systemImage: "headphones")
                             Spacer()
-                            Text(selectedPlatform?.rawValue ?? "Aucune")
+                            Text(selectedPlatform?.rawValue ?? L("settings_no_platform_short"))
+                                .foregroundColor(.yellow)
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    Menu {
+                        ForEach(AppLanguage.allCases) { language in
+                            Button {
+                                localization.currentLanguage = language
+                            } label: {
+                                HStack {
+                                    Text("\(language.flag) \(language.displayName)")
+                                    if localization.currentLanguage == language {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Label(L("settings_language"), systemImage: "globe")
+                            Spacer()
+                            Text("\(localization.currentLanguage.flag) \(localization.currentLanguage.displayName)")
                                 .foregroundColor(.yellow)
                         }
                     }
@@ -871,7 +1009,7 @@ struct SettingsView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("FERMER")
+                    Text(L("close_button"))
                         .font(.headline.bold())
                         .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
@@ -887,6 +1025,7 @@ struct SettingsView: View {
 
 struct PlaybackTransitionView: View {
     let sourceName: String
+    let isLeavingApp: Bool
 
     @State private var pulse = false
 
@@ -906,19 +1045,21 @@ struct PlaybackTransitionView: View {
                     .foregroundStyle(.yellow, .green)
                     .scaleEffect(pulse ? 1.08 : 0.94)
 
-                Text("LA MUSIQUE DÉMARRE")
+                Text(L("transition_title"))
                     .font(.title2.bold())
                     .foregroundColor(.white)
 
-                Text(sourceName == "ZikAfrica" ? "Lecture dans ZikAfrica" : "Ouverture de \(sourceName)")
-                    .font(.headline)
-                    .foregroundColor(.yellow)
+                if isLeavingApp {
+                    Text(String(format: L("transition_opening_format"), sourceName))
+                        .font(.headline)
+                        .foregroundColor(.yellow)
 
-                Text(sourceName == "ZikAfrica" ? "L’extrait reste masqué dans l’app. À vous de deviner." : "Laisse la musique jouer, puis touche l’alerte iPhone pour revenir dans ZikAfrica et deviner.")
-                    .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.78))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 36)
+                    Text(L("transition_external_hint"))
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.78))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 36)
+                }
             }
         }
         .onAppear {
@@ -948,7 +1089,7 @@ struct PlaybackReturnView: View {
                 HStack {
                     Spacer()
                     Button(action: onHome) {
-                        Text("Accueil")
+                        Text(L("return_home"))
                             .font(.system(size: 15, weight: .bold, design: .rounded))
                             .foregroundColor(.white.opacity(0.9))
                     }
@@ -972,7 +1113,7 @@ struct PlaybackReturnView: View {
 
                 VStack(spacing: 12) {
                     returnButton(
-                        "SCANNER LA CARTE SUIVANTE",
+                        L("return_scan_next"),
                         icon: "qrcode.viewfinder",
                         tint: .green,
                         action: onScanNext
@@ -980,7 +1121,7 @@ struct PlaybackReturnView: View {
 
                     HStack(spacing: 10) {
                         returnButton(
-                            "REJOUER",
+                            L("return_replay"),
                             icon: "arrow.counterclockwise",
                             tint: .yellow,
                             compact: true,
@@ -988,7 +1129,7 @@ struct PlaybackReturnView: View {
                         )
 
                         returnButton(
-                            "RÉVÉLER",
+                            L("return_reveal"),
                             icon: "trophy.fill",
                             tint: .yellow,
                             compact: true,
