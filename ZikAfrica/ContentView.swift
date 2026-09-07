@@ -29,6 +29,7 @@ struct ContentView: View {
     @State private var showAppleMusicAuthorizationBlocked = false
     @State private var showAppleMusicTrackUnavailable = false
     @State private var showSpotifyPlaybackIssue = false
+    @State private var hasShownAppleMusicSubscriptionSuggestion = false
     @State private var hasShownAppleMusicTrackUnavailable = false
     @State private var hasShownSpotifyPlaybackIssue = false
     @State private var showPlatformChoiceAfterAppleMusicRecommendation = false
@@ -552,9 +553,12 @@ struct ContentView: View {
 
             switch outcome {
             case .noActiveSubscription:
-                // Repli automatique : la boucle continue vers Spotify puis Deezer,
-                // ce message ne bloque rien (voir plus bas dans playTrack()).
-                showAppleMusicSubscriptionSuggestion = true
+                // Repli automatique : la boucle continue vers Spotify puis Deezer.
+                // L’information est utile, mais ne doit pas interrompre chaque tour.
+                if !hasShownAppleMusicSubscriptionSuggestion {
+                    hasShownAppleMusicSubscriptionSuggestion = true
+                    showAppleMusicSubscriptionSuggestion = true
+                }
 
             case .authorizationDenied:
                 // Vraie permission iOS : on peut réellement guider l'utilisateur vers
