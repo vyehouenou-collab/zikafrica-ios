@@ -6,6 +6,8 @@ import UIKit
 
 struct ContentView: View {
 
+    private static var hasShownAppleMusicSubscriptionSuggestionThisSession = false
+
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var connectedGame = ConnectedGameSession()
 
@@ -29,7 +31,6 @@ struct ContentView: View {
     @State private var showAppleMusicAuthorizationBlocked = false
     @State private var showAppleMusicTrackUnavailable = false
     @State private var showSpotifyPlaybackIssue = false
-    @State private var hasShownAppleMusicSubscriptionSuggestion = false
     @State private var hasShownAppleMusicTrackUnavailable = false
     @State private var hasShownSpotifyPlaybackIssue = false
     @State private var showPlatformChoiceAfterAppleMusicRecommendation = false
@@ -555,8 +556,8 @@ struct ContentView: View {
             case .noActiveSubscription:
                 // Repli automatique : la boucle continue vers Spotify puis Deezer.
                 // L’information est utile, mais ne doit pas interrompre chaque tour.
-                if !hasShownAppleMusicSubscriptionSuggestion {
-                    hasShownAppleMusicSubscriptionSuggestion = true
+                if !Self.hasShownAppleMusicSubscriptionSuggestionThisSession {
+                    Self.hasShownAppleMusicSubscriptionSuggestionThisSession = true
                     showAppleMusicSubscriptionSuggestion = true
                 }
 
