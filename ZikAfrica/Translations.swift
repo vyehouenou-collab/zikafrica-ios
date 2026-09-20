@@ -325,18 +325,18 @@ enum Translations {
 
         // MARK: - Alerte : Spotify n'a pas pu lire ce titre
         "spotify_issue_title": [
-            .french: "Spotify n'a pas pu lire ce titre",
-            .english: "Spotify couldn't play this track",
-            .arabic: "تعذّر على Spotify تشغيل هذه المقطوعة",
-            .portuguese: "O Spotify não conseguiu reproduzir esta faixa",
-            .swahili: "Spotify haikuweza kucheza wimbo huu"
+            .french: "Spotify Premium recommandé",
+            .english: "Spotify Premium recommended",
+            .arabic: "يوصى باستخدام Spotify Premium",
+            .portuguese: "Spotify Premium recomendado",
+            .swahili: "Spotify Premium inapendekezwa"
         ],
         "spotify_issue_message": [
-            .french: "Cause la plus fréquente : un compte Spotify gratuit (Spotify réserve la lecture d'un titre précis aux comptes Premium). Ça peut aussi être un refus de connexion ou un souci réseau. ZikAfrica continue automatiquement avec une autre source.",
-            .english: "Most common cause: a free Spotify account (Spotify reserves on-demand track playback for Premium accounts). It could also be a declined connection or a network issue. ZikAfrica automatically continues with another source.",
-            .arabic: "السبب الأكثر شيوعًا: حساب Spotify مجاني (يقتصر تشغيل مقطوعة معيّنة عند الطلب على حسابات Premium). قد يكون أيضًا رفضًا للاتصال أو مشكلة في الشبكة. يتابع ZikAfrica تلقائيًا بمصدر آخر.",
-            .portuguese: "Causa mais comum: uma conta Spotify gratuita (o Spotify reserva a reprodução de uma faixa específica às contas Premium). Também pode ser uma ligação recusada ou um problema de rede. O ZikAfrica continua automaticamente com outra fonte.",
-            .swahili: "Sababu ya kawaida zaidi: akaunti ya bure ya Spotify (Spotify huruhusu kucheza wimbo maalum kwa ombi kwa akaunti za Premium pekee). Inaweza pia kuwa kukataliwa kwa muunganisho au tatizo la mtandao. ZikAfrica inaendelea kiotomatiki na chanzo kingine."
+            .french: "Spotify est installé, mais un compte gratuit ne permet pas toujours de lire directement le titre complet dans ZikAfrica. Passe à Spotify Premium pour profiter pleinement du jeu. En attendant, ZikAfrica continue automatiquement avec un extrait de 30 secondes.",
+            .english: "Spotify is installed, but a free account may not allow ZikAfrica to play the full track directly. Upgrade to Spotify Premium to fully enjoy the game. In the meantime, ZikAfrica automatically continues with a 30-second preview.",
+            .arabic: "Spotify مثبّت، لكن الحساب المجاني قد لا يسمح لـ ZikAfrica بتشغيل المقطوعة كاملة مباشرة. انتقل إلى Spotify Premium للاستمتاع الكامل باللعبة. في هذه الأثناء، يتابع ZikAfrica تلقائيًا بمقطع مدته 30 ثانية.",
+            .portuguese: "O Spotify está instalado, mas uma conta gratuita pode não permitir ao ZikAfrica reproduzir diretamente a faixa completa. Passa para Spotify Premium para aproveitares totalmente o jogo. Entretanto, o ZikAfrica continua automaticamente com um excerto de 30 segundos.",
+            .swahili: "Spotify imesakinishwa, lakini akaunti ya bure huenda isiruhusu ZikAfrica kucheza wimbo mzima moja kwa moja. Tumia Spotify Premium ili kufurahia mchezo kikamilifu. Wakati huo huo, ZikAfrica inaendelea kiotomatiki na kipande cha sekunde 30."
         ],
 
         "ok_button": [

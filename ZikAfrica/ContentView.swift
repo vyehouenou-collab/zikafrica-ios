@@ -4,9 +4,23 @@ import AVFoundation
 import AudioToolbox
 import UIKit
 
-struct ContentView: View {
 
-    private static var hasShownAppleMusicSubscriptionSuggestionThisSession = false
+
+private final class PlaybackNoticeGate {
+    static let shared = PlaybackNoticeGate()
+
+    private var shownNotices = Set<String>()
+
+    private init() {}
+
+    func shouldShow(_ notice: String) -> Bool {
+        if shownNotices.contains(notice) { return false }
+        shownNotices.insert(notice)
+        return true
+    }
+}
+
+struct ContentView: View {
 
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var connectedGame = ConnectedGameSession()
@@ -32,7 +46,6 @@ struct ContentView: View {
     @State private var showAppleMusicTrackUnavailable = false
     @State private var showSpotifyPlaybackIssue = false
     @State private var hasShownAppleMusicTrackUnavailable = false
-    @State private var hasShownSpotifyPlaybackIssue = false
     @State private var showPlatformChoiceAfterAppleMusicRecommendation = false
     @State private var showInstallPromptAfterAppleMusicRecommendation = false
     @State private var showNoMusicAppInstalled = false
@@ -556,8 +569,7 @@ struct ContentView: View {
             case .noActiveSubscription:
                 // Repli automatique : la boucle continue vers Spotify puis Deezer.
                 // L’information est utile, mais ne doit pas interrompre chaque tour.
-                if !Self.hasShownAppleMusicSubscriptionSuggestionThisSession {
-                    Self.hasShownAppleMusicSubscriptionSuggestionThisSession = true
+                if PlaybackNoticeGate.shared.shouldShow("appleMusicSubscription") {
                     showAppleMusicSubscriptionSuggestion = true
                 }
 
@@ -585,11 +597,7 @@ struct ContentView: View {
             playbackSourceName = "Spotify"
             let started = await SpotifyFullTrackPlayer.shared.play(track: track)
 
-            if !started, !hasShownSpotifyPlaybackIssue {
-                // Pas une histoire de permission iOS non plus : la cause la plus
-                // fréquente est un compte gratuit (Premium requis côté Spotify pour
-                // jouer un titre précis), qui ne se "débloque" par aucun réglage.
-                hasShownSpotifyPlaybackIssue = true
+            if !started, PlaybackNoticeGate.shared.shouldShow("spotifyPremiumSuggestion") {
                 showSpotifyPlaybackIssue = true
             }
 
