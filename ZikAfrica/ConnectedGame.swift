@@ -17,6 +17,8 @@ struct ConnectedBuzz: Identifiable {
 }
 
 struct ScoreChange {
+    let id = UUID()
+    let appliedScore: Int
     let teamID: String
     let previousScore: Int
 }
@@ -29,21 +31,26 @@ final class ConnectedGameSession: ObservableObject {
     @Published private(set) var isFinished: Bool
     @Published private(set) var teams: [ConnectedTeam] = []
     @Published private(set) var isLoading = false
+    @Published private(set) var synchronized = false
     @Published private(set) var buzzOpen = false
     @Published private(set) var buzzRound = 0
     @Published private(set) var firstBuzzPlayerName: String?
     @Published private(set) var firstBuzzAlertName: String?
     @Published private(set) var buzzes: [ConnectedBuzz] = []
     @Published var errorMessage: String?
-
     private let db = Firestore.firestore()
     private var playerListener: ListenerRegistration?
     private var gameListener: ListenerRegistration?
     private var buzzListener: ListenerRegistration?
-    private var listenedBuzzRound: Int?
-    private var hasReceivedInitialGameSnapshot = false
+    private var generation = 0
+    private var receivedServerSnapshot = false
     private var lastAlertedBuzzRound = 0
     private var history: [ScoreChange] = []
+    private var latestBuzzes: [ConnectedBuzz] = []
+    private var expiryTask: Task<Void, Never>?
+    private var retryTask: Task<Void, Never>?
+    private var retryCount = 0
+    private var listening = false
 
     init() {
         let defaults = UserDefaults.standard
@@ -53,301 +60,273 @@ final class ConnectedGameSession: ObservableObject {
         isFinished = defaults.bool(forKey: "connectedGameFinished")
         if isActive { listenForPlayers() }
     }
-
-    var joinURL: URL {
-        URL(string: "https://zikafrica-56a1e.web.app/?game=\(gameCode)")!
-    }
-
-    var canUndo: Bool { !history.isEmpty && !isFinished }
-
+    private(set) var playbackTicket: (code: String, round: Int)?
+    var joinURL: URL { URL(string: "https://zikafrica-56a1e.web.app/?game=\(gameCode)")! }
+    var canUndo: Bool { !history.isEmpty && !isFinished && !isLoading }
     func createGame() {
         guard !isActive, !isLoading else { return }
-        isLoading = true
-        errorMessage = nil
-
-        authenticate { [weak self] uid in
-            guard let self else { return }
-            let expires = Date().addingTimeInterval(12 * 60 * 60)
-            self.db.collection("games").document(self.gameCode).setData([
-                "hostUid": uid,
-                "pin": self.pin,
-                "status": "open",
-                "buzzOpen": false,
-                "buzzRound": 0,
-                "createdAt": FieldValue.serverTimestamp(),
-                "expiresAt": Timestamp(date: expires)
-            ]) { error in
-                Task { @MainActor in
-                    self.isLoading = false
-                    if error != nil {
-                        self.errorMessage = L("connected_error_create_game")
-                    } else {
-                        self.isActive = true
-                        self.isFinished = false
-                        self.persist()
-                        self.listenForPlayers()
-                    }
-                }
-            }
-        }
+        isLoading = true; errorMessage = nil
+        authenticate { [weak self] uid in self?.create(uid: uid, attempt: 0) }
     }
-
-    func startNewSession() {
-        let recreate = isActive
-        if isActive {
-            db.collection("games").document(gameCode).updateData([
-                "status": "closed",
-                "closedAt": FieldValue.serverTimestamp()
-            ])
-        }
-        stopListening()
-        teams = []
-        history = []
-        buzzOpen = false
-        buzzRound = 0
-        firstBuzzPlayerName = nil
-        firstBuzzAlertName = nil
-        buzzes = []
-        hasReceivedInitialGameSnapshot = false
-        lastAlertedBuzzRound = 0
-        gameCode = Self.newCode()
-        pin = Self.newPIN()
-        isActive = false
-        isFinished = false
-        errorMessage = nil
-        persist()
-        if recreate { createGame() }
-    }
-
-    func finishGame() {
-        guard isActive, !isFinished else { return }
-        db.collection("games").document(gameCode).updateData([
-            "status": "finished",
-            "finishedAt": FieldValue.serverTimestamp()
-        ]) { [weak self] error in
+    private func create(uid: String, attempt: Int) {
+        let ref = db.collection("games").document(gameCode)
+        let data: [String: Any] = [
+            "hostUid": uid, "pin": pin, "status": "open", "buzzOpen": false, "buzzRound": 0,
+            "createdAt": FieldValue.serverTimestamp(), "expiresAt": Timestamp(date: Date().addingTimeInterval(43200))
+        ]
+        db.runTransaction({ tx, errorPointer -> Any? in
+            do {
+                guard try !tx.getDocument(ref).exists else { throw NSError(domain: "ZikAfrica.Collision", code: 1) }
+                tx.setData(data, forDocument: ref)
+            } catch { errorPointer?.pointee = error as NSError }
+            return nil
+        }) { [weak self] _, error in
             Task { @MainActor in
                 guard let self else { return }
-                if error == nil {
-                    self.isFinished = true
-                    self.persist()
+                if let error {
+                    if ((error as NSError).code == FirestoreErrorCode.permissionDenied.rawValue || (error as NSError).domain == "ZikAfrica.Collision") && attempt < 4 {
+                        self.gameCode = Self.newCode(); self.pin = Self.newPIN(); self.create(uid: uid, attempt: attempt + 1)
+                    } else { self.isLoading = false; self.errorMessage = L("connected_error_create_game") }
+                } else {
+                    self.isLoading = false; self.isActive = true; self.isFinished = false
+                    self.persist(); self.listenForPlayers()
                 }
             }
         }
     }
-
+    private func mutate(_ action: @escaping (FirebaseFirestore.Transaction, DocumentReference) throws -> Any?, success: @escaping (Any?) -> Void = { _ in }) {
+        guard !isLoading else { errorMessage = L("connected_action_busy"); return }
+        isLoading = true; errorMessage = nil
+        let code = gameCode, ref = db.collection("games").document(gameCode)
+        db.runTransaction({ tx, errorPointer -> Any? in
+            do { return try action(tx, ref) }
+            catch { errorPointer?.pointee = error as NSError; return nil }
+        }) { [weak self] result, error in
+            Task { @MainActor in
+                guard let self, self.gameCode == code else { return }
+                self.isLoading = false
+                if error != nil { self.errorMessage = L("connected_action_failed") }
+                else { success(result) }
+            }
+        }
+    }
+    nonisolated private static func requireOpen(_ snapshot: DocumentSnapshot) throws {
+        guard let data = snapshot.data(), data["status"] as? String == "open",
+              let expires = data["expiresAt"] as? Timestamp, expires.dateValue() > Date() else {
+            throw NSError(domain: "ZikAfrica.Game", code: 1, userInfo: [NSLocalizedDescriptionKey: "Partie fermée ou expirée"])
+        }
+    }
+    func startNewSession() {
+        guard !isLoading else { return }
+        let recreate = isActive
+        let reset = { [self] in
+            stopListening(); teams = []; history = []; buzzes = []; latestBuzzes = []
+            buzzOpen = false; buzzRound = 0; firstBuzzPlayerName = nil; firstBuzzAlertName = nil
+            receivedServerSnapshot = false; lastAlertedBuzzRound = 0
+            gameCode = Self.newCode(); pin = Self.newPIN(); isActive = false; isFinished = false
+            errorMessage = nil; persist()
+            if recreate { createGame() }
+        }
+        if !isActive { reset(); return }
+        mutate({ tx, ref in
+            if try tx.getDocument(ref).exists {
+                tx.updateData(["status": "closed", "buzzOpen": false, "closedAt": FieldValue.serverTimestamp()], forDocument: ref)
+            }
+            return nil
+        }, success: { _ in reset() })
+    }
+    func finishGame() {
+        guard isActive, !isFinished else { return }
+        mutate({ tx, ref in
+            tx.updateData(["status": "finished", "buzzOpen": false, "finishedAt": FieldValue.serverTimestamp()], forDocument: ref)
+            return nil
+        }, success: { [weak self] _ in self?.isFinished = true; self?.buzzOpen = false; self?.firstBuzzAlertName = nil; self?.persist() })
+    }
     func changeScore(for team: ConnectedTeam, by delta: Int) {
         guard !isFinished else { return }
-        let newScore = max(0, team.score + delta)
-        db.collection("games").document(gameCode).collection("players").document(team.id)
-            .updateData(["score": newScore]) { [weak self] error in
-                Task { @MainActor in
-                    if error == nil {
-                        self?.history.append(ScoreChange(teamID: team.id, previousScore: team.score))
-                    }
-                }
-            }
+        mutate({ tx, ref in
+            try Self.requireOpen(tx.getDocument(ref))
+            let player = ref.collection("players").document(team.id), snapshot = try tx.getDocument(player)
+            guard let data = snapshot.data(), data["removed"] as? Bool != true else { throw NSError(domain: "ZikAfrica.Game", code: 2) }
+            let previous = data["score"] as? Int ?? 0, next = min(1000000, max(0, previous + delta))
+            tx.updateData(["score": next], forDocument: player)
+            return ["previous": previous, "next": next]
+        }, success: { [weak self] result in
+            guard let values = result as? [String: Int], let previous = values["previous"], let next = values["next"] else { return }
+            self?.history.append(ScoreChange(appliedScore: next, teamID: team.id, previousScore: previous))
+        })
     }
-
     func undoLastScore() {
-        guard let change = history.last else { return }
-        db.collection("games").document(gameCode).collection("players").document(change.teamID)
-            .updateData(["score": change.previousScore]) { [weak self] error in
-                Task { @MainActor in
-                    if error == nil { _ = self?.history.popLast() }
-                }
-            }
+        guard !isFinished, let change = history.last else { return }
+        mutate({ tx, ref in
+            try Self.requireOpen(tx.getDocument(ref))
+            let player = ref.collection("players").document(change.teamID), data = try tx.getDocument(player).data()
+            guard data?["removed"] as? Bool != true, data?["score"] as? Int == change.appliedScore else { throw NSError(domain: "ZikAfrica.Game", code: 3) }
+            tx.updateData(["score": change.previousScore], forDocument: player); return nil
+        }, success: { [weak self] _ in self?.history.removeAll { $0.id == change.id } })
     }
-
     func removeTeam(_ team: ConnectedTeam) {
         guard !isFinished else { return }
-        db.collection("games").document(gameCode).collection("players").document(team.id)
-            .delete { [weak self] error in
-                Task { @MainActor in
-                    guard let self else { return }
-                    if error != nil {
-                        self.errorMessage = L("connected_error_remove_player")
-                    } else {
-                        self.history.removeAll { $0.teamID == team.id }
-                    }
+        mutate({ tx, ref in
+            try Self.requireOpen(tx.getDocument(ref)); tx.updateData(["removed": true], forDocument: ref.collection("players").document(team.id)); return nil
+        }, success: { [weak self] _ in self?.history.removeAll { $0.teamID == team.id } })
+    }
+    func openBuzzerForPlayback(onReady: @escaping () -> Void) {
+        guard isActive else { onReady(); return }
+        guard !isFinished else { errorMessage = L("connected_new_required"); return }
+        let started = Date()
+        mutate({ tx, ref in
+            guard Date().timeIntervalSince(started) < 10 else { throw NSError(domain: "ZikAfrica.Game", code: 4) }
+            let game = try tx.getDocument(ref); try Self.requireOpen(game)
+            let round = game.data()?["buzzRound"] as? Int ?? 0
+            tx.updateData(["buzzOpen": true, "buzzRound": round + 1,
+                "firstBuzzPlayerId": FieldValue.delete(), "firstBuzzPlayerName": FieldValue.delete(), "firstBuzzAt": FieldValue.delete(),
+                "lastPlaybackActionAt": FieldValue.serverTimestamp()], forDocument: ref)
+            return round + 1
+        }, success: { [weak self] result in
+            guard let self, let round = result as? Int else { return }
+            self.playbackTicket = (self.gameCode, round); onReady()
+        })
+    }
+    func playbackFailed(_ ticket: (code: String, round: Int)?) {
+        guard let ticket else { return }
+        let ref = db.collection("games").document(ticket.code)
+        db.runTransaction({ tx, errorPointer -> Any? in
+            do {
+                let game = try tx.getDocument(ref).data()
+                if game?["buzzRound"] as? Int == ticket.round && game?["status"] as? String == "open" {
+                    tx.updateData(["buzzOpen": false], forDocument: ref)
                 }
+            } catch { errorPointer?.pointee = error as NSError }
+            return nil
+        }) { [weak self] _, error in
+            Task { @MainActor in
+                if let self, self.gameCode == ticket.code, error != nil { self.errorMessage = L("connected_playback_failed") }
             }
+        }
     }
-
-    func openBuzzerForPlayback() {
-        guard isActive, !isFinished else { return }
-        firstBuzzAlertName = nil
-        db.collection("games").document(gameCode).updateData([
-            "buzzOpen": true,
-            "buzzRound": FieldValue.increment(Int64(1)),
-            "firstBuzzPlayerId": FieldValue.delete(),
-            "firstBuzzPlayerName": FieldValue.delete(),
-            "firstBuzzAt": FieldValue.delete(),
-            "lastPlaybackActionAt": FieldValue.serverTimestamp()
-        ])
-    }
-
     func resetBuzzer() {
         guard isActive, !isFinished else { return }
-        firstBuzzAlertName = nil
-        db.collection("games").document(gameCode).updateData([
-            "buzzOpen": false,
-            "firstBuzzPlayerId": FieldValue.delete(),
-            "firstBuzzPlayerName": FieldValue.delete(),
-            "firstBuzzAt": FieldValue.delete()
-        ])
+        mutate({ tx, ref in
+            try Self.requireOpen(tx.getDocument(ref))
+            tx.updateData(["buzzOpen": false, "firstBuzzPlayerId": FieldValue.delete(), "firstBuzzPlayerName": FieldValue.delete(), "firstBuzzAt": FieldValue.delete()], forDocument: ref)
+            return nil
+        }, success: { [weak self] _ in self?.firstBuzzAlertName = nil; self?.buzzes = [] })
     }
-
-    func dismissFirstBuzzAlert() {
-        firstBuzzAlertName = nil
-    }
-
+    func dismissFirstBuzzAlert() { firstBuzzAlertName = nil }
     func listenForPlayers() {
-        guard isActive else { return }
-
-        if gameListener == nil {
-            gameListener = db.collection("games").document(gameCode)
-                .addSnapshotListener { [weak self] snapshot, error in
-                    Task { @MainActor in
-                        guard let self else { return }
-                        if error != nil {
-                            self.errorMessage = L("connected_error_sync_buzzer")
-                            return
-                        }
-
-                        let data = snapshot?.data() ?? [:]
-                        let isInitialSnapshot = !self.hasReceivedInitialGameSnapshot
-                        self.hasReceivedInitialGameSnapshot = true
-
-                        self.buzzOpen = data["buzzOpen"] as? Bool ?? false
-                        if let buzzRound = data["buzzRound"] as? Int {
-                            self.buzzRound = buzzRound
-                        } else if let buzzRound = data["buzzRound"] as? NSNumber {
-                            self.buzzRound = buzzRound.intValue
-                        } else {
-                            self.buzzRound = 0
-                        }
-                        let incomingFirstBuzzName = data["firstBuzzPlayerName"] as? String
-                        self.firstBuzzPlayerName = incomingFirstBuzzName
-                        if isInitialSnapshot {
-                            if incomingFirstBuzzName != nil {
-                                self.lastAlertedBuzzRound = self.buzzRound
-                            }
-                        } else if let incomingFirstBuzzName,
-                                  self.buzzRound > self.lastAlertedBuzzRound {
-                            self.firstBuzzAlertName = incomingFirstBuzzName
-                            self.lastAlertedBuzzRound = self.buzzRound
-                        }
-                        self.syncBuzzesForCurrentRound()
-                    }
-                }
-        }
-
-        guard playerListener == nil else { return }
-        playerListener = db.collection("games").document(gameCode).collection("players")
-            .addSnapshotListener { [weak self] snapshot, error in
-                Task { @MainActor in
-                    guard let self else { return }
-                    if error != nil {
-                        self.errorMessage = L("connected_error_sync_players")
-                        return
-                    }
-                    self.teams = snapshot?.documents.map {
-                        ConnectedTeam(
-                            id: $0.documentID,
-                            name: $0.data()["name"] as? String ?? L("connected_default_team_name"),
-                            score: $0.data()["score"] as? Int ?? 0
-                        )
-                    }.sorted { $0.score > $1.score } ?? []
-                }
-            }
-    }
-
-    func stopListening() {
-        playerListener?.remove()
-        playerListener = nil
-        gameListener?.remove()
-        gameListener = nil
-        buzzListener?.remove()
-        buzzListener = nil
-        listenedBuzzRound = nil
-        hasReceivedInitialGameSnapshot = false
-    }
-
-    private func syncBuzzesForCurrentRound() {
-        if listenedBuzzRound == buzzRound { return }
-        buzzListener?.remove()
-        buzzListener = nil
-        listenedBuzzRound = buzzRound
-
-        buzzListener = db.collection("games").document(gameCode).collection("buzzes")
-            .addSnapshotListener { [weak self] snapshot, error in
-                Task { @MainActor in
-                    guard let self else { return }
-                    if error != nil {
-                        self.errorMessage = L("connected_error_sync_buzz_order")
-                        return
-                    }
-
-                    self.buzzes = snapshot?.documents.compactMap { document in
-                        let data = document.data()
-                        let round: Int
-                        if let value = data["round"] as? Int {
-                            round = value
-                        } else if let value = data["round"] as? NSNumber {
-                            round = value.intValue
-                        } else {
-                            round = -1
-                        }
-
-                        guard round == self.buzzRound else { return nil }
-                        return ConnectedBuzz(
-                            id: document.documentID,
-                            playerName: data["playerName"] as? String ?? L("connected_default_player_name"),
-                            round: round,
-                            createdAt: (data["createdAt"] as? Timestamp)?.dateValue()
-                        )
-                    }
-                    .sorted {
-                        switch ($0.createdAt, $1.createdAt) {
-                        case let (left?, right?):
-                            return left < right
-                        case (.some, nil):
-                            return true
-                        case (nil, .some):
-                            return false
-                        case (nil, nil):
-                            return $0.playerName < $1.playerName
-                        }
-                    } ?? []
-                }
-            }
-    }
-
-    private func authenticate(completion: @escaping (String) -> Void) {
-        if let uid = Auth.auth().currentUser?.uid {
-            completion(uid)
-            return
-        }
-        Auth.auth().signInAnonymously { result, error in
+        guard isActive, gameListener == nil else { return }
+        listening = true
+        let epoch = generation, ref = db.collection("games").document(gameCode)
+        gameListener = ref.addSnapshotListener(includeMetadataChanges: true) { [weak self] snapshot, error in
             Task { @MainActor in
-                if let uid = result?.user.uid {
-                    completion(uid)
-                } else {
-                    self.isLoading = false
-                    self.errorMessage = L("connected_error_firebase_auth")
+                guard let self, self.generation == epoch else { return }
+                if error != nil { self.listenerFailed(); return }
+                guard let snapshot else { return }
+                self.synchronized = !snapshot.metadata.isFromCache && !snapshot.metadata.hasPendingWrites
+                guard let data = snapshot.data() else {
+                    if self.synchronized { self.isFinished = true; self.buzzOpen = false; self.persist(); self.errorMessage = L("connected_missing") }
+                    return
                 }
+                if self.synchronized {
+                    self.retryCount = 0
+                    if self.errorMessage == L("connected_reconnecting") { self.errorMessage = nil }
+                    let expiry = (data["expiresAt"] as? Timestamp)?.dateValue() ?? .distantPast
+                    self.isFinished = data["status"] as? String != "open" || expiry <= Date()
+                    self.persist(); self.expiryTask?.cancel()
+                    if !self.isFinished {
+                        self.expiryTask = Task { [weak self] in
+                            do { try await Task.sleep(nanoseconds: UInt64(max(0, min(86400, expiry.timeIntervalSinceNow)) * 1_000_000_000)) } catch { return }
+                            guard let self else { return }
+                            self.isFinished = true; self.buzzOpen = false; self.buzzes = []; self.firstBuzzAlertName = nil
+                            self.errorMessage = L("connected_expired"); self.persist()
+                        }
+                    }
+                }
+                let round = data["buzzRound"] as? Int ?? 0
+                if round != self.buzzRound { self.firstBuzzAlertName = nil }
+                self.buzzRound = round; self.buzzOpen = !self.isFinished && data["buzzOpen"] as? Bool == true
+                self.firstBuzzPlayerName = data["firstBuzzPlayerName"] as? String
+                if self.synchronized {
+                    if self.receivedServerSnapshot, !self.isFinished, let name = self.firstBuzzPlayerName, round > self.lastAlertedBuzzRound { self.firstBuzzAlertName = name }
+                    if self.firstBuzzPlayerName != nil { self.lastAlertedBuzzRound = round }
+                    self.receivedServerSnapshot = true
+                }
+                self.refreshBuzzOrder()
+            }
+        }
+        playerListener = ref.collection("players").addSnapshotListener { [weak self] snapshot, error in
+            Task { @MainActor in
+                guard let self, self.generation == epoch else { return }
+                if error != nil { self.listenerFailed(); return }
+                var updatedTeams: [ConnectedTeam] = []
+                for document in snapshot?.documents ?? [] {
+                    let data = document.data()
+                    if data["removed"] as? Bool == true { continue }
+                    let name = data["name"] as? String ?? "Équipe"
+                    let score = data["score"] as? Int ?? 0
+                    updatedTeams.append(ConnectedTeam(id: document.documentID, name: name, score: score))
+                }
+                updatedTeams.sort { left, right in
+                    if left.score == right.score { return left.id < right.id }
+                    return left.score > right.score
+                }
+                self.teams = updatedTeams
+            }
+        }
+        buzzListener = ref.collection("buzzes").addSnapshotListener { [weak self] snapshot, error in
+            Task { @MainActor in
+                guard let self, self.generation == epoch else { return }
+                if error != nil { self.listenerFailed(); return }
+                var updatedBuzzes: [ConnectedBuzz] = []
+                for document in snapshot?.documents ?? [] {
+                    let data = document.data()
+                    let name = data["playerName"] as? String ?? "Joueur"
+                    let round = data["round"] as? Int ?? -1
+                    let date = (data["createdAt"] as? Timestamp)?.dateValue()
+                    updatedBuzzes.append(ConnectedBuzz(id: document.documentID, playerName: name, round: round, createdAt: date))
+                }
+                self.latestBuzzes = updatedBuzzes
+                self.refreshBuzzOrder()
             }
         }
     }
-
+    private func refreshBuzzOrder() {
+        buzzes = buzzOpen ? latestBuzzes.filter { $0.round == buzzRound }.sorted {
+            let left = $0.createdAt ?? .distantFuture, right = $1.createdAt ?? .distantFuture
+            return left == right ? $0.id < $1.id : left < right
+        } : []
+    }
+    private func detach() {
+        generation += 1; synchronized = false
+        playerListener?.remove(); playerListener = nil; gameListener?.remove(); gameListener = nil; buzzListener?.remove(); buzzListener = nil
+        retryTask?.cancel(); retryTask = nil
+    }
+    private func listenerFailed() {
+        errorMessage = L("connected_reconnecting")
+        detach()
+        let delay = UInt64(min(30, pow(2, Double(min(retryCount, 5))))) * 1_000_000_000
+        retryCount += 1
+        retryTask = Task { [weak self] in
+            do { try await Task.sleep(nanoseconds: delay) } catch { return }
+            guard let self, self.listening else { return }; self.listenForPlayers()
+        }
+    }
+    func stopListening() { listening = false; detach(); expiryTask?.cancel() }
+    private func authenticate(completion: @escaping (String) -> Void) {
+        if let uid = Auth.auth().currentUser?.uid { completion(uid); return }
+        Auth.auth().signInAnonymously { [weak self] result, error in
+            Task { @MainActor in
+                if let uid = result?.user.uid { completion(uid) }
+                else { self?.isLoading = false; self?.errorMessage = L("connected_error_firebase_auth") }
+            }
+        }
+    }
     private func persist() {
         let defaults = UserDefaults.standard
-        defaults.set(gameCode, forKey: "connectedGameCode")
-        defaults.set(pin, forKey: "connectedGamePIN")
-        defaults.set(isActive, forKey: "connectedGameActive")
-        defaults.set(isFinished, forKey: "connectedGameFinished")
+        defaults.set(gameCode, forKey: "connectedGameCode"); defaults.set(pin, forKey: "connectedGamePIN")
+        defaults.set(isActive, forKey: "connectedGameActive"); defaults.set(isFinished, forKey: "connectedGameFinished")
     }
-
     private static func newCode() -> String { "ZA-\(Int.random(in: 100000...999999))" }
     private static func newPIN() -> String { "\(Int.random(in: 1000...9999))" }
 }
@@ -413,7 +392,7 @@ struct ConnectedGameView: View {
                                 .minimumScaleFactor(0.58)
                                 .lineLimit(1)
 
-                            Text(String(format: L(session.teams.count > 1 ? "connected_players_plural_format" : "connected_players_singular_format"), session.teams.count))
+                            Text(String(format: L("connected_registered_format"), session.teams.count))
                                 .font(.system(size: 21, weight: .semibold, design: .rounded))
                                 .foregroundStyle(Color(red: 0.3, green: 1, blue: 0.53))
 
@@ -444,6 +423,7 @@ struct ConnectedGameView: View {
                                     .opacity(session.canUndo ? 1 : 0.42)
 
                                 Button(L("connected_finish_game")) { session.finishGame() }
+                                    .disabled(session.isLoading)
                                     .font(.system(size: 18, weight: .black, design: .rounded))
                                     .foregroundStyle(.black)
                                     .frame(maxWidth: .infinity)
@@ -534,6 +514,7 @@ private struct ConnectedTeamRow: View {
 
     private func scoreButton(_ title: String, _ color: Color, _ delta: Int) -> some View {
         Button(title) { session.changeScore(for: team, by: delta) }
+            .disabled(session.isLoading)
             .font(.system(size: 13, weight: .black, design: .rounded))
             .foregroundStyle(color)
             .frame(maxWidth: .infinity)
@@ -550,6 +531,9 @@ private struct ConnectedBuzzerStatus: View {
     @ObservedObject var session: ConnectedGameSession
 
     private var title: String {
+        if session.isLoading { return L("connected_sync_pending") }
+        if session.isFinished { return L("connected_status_finished") }
+        if !session.synchronized { return L("connected_status_reconnecting") }
         if let name = session.firstBuzzPlayerName {
             return String(format: L("connected_first_buzz_format"), name)
         }
@@ -616,6 +600,7 @@ private struct ConnectedBuzzerStatus: View {
                 Button(L("connected_reset_buzzer")) {
                     session.resetBuzzer()
                 }
+                .disabled(session.isLoading)
                 .font(.system(size: 12, weight: .black, design: .rounded))
                 .foregroundStyle(Color(red: 1, green: 0.77, blue: 0))
                 .frame(maxWidth: .infinity)

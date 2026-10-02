@@ -7,6 +7,85 @@ import Foundation
 enum Translations {
     static let table: [String: [AppLanguage: String]] = [
 
+        // SCORE LIVES — connection and transaction states
+        "connected_action_busy": [
+            .french: "Une action est en cours. Réessaie dans un instant.",
+            .english: "An action is in progress. Try again shortly.",
+            .arabic: "هناك عملية جارية. حاول مرة أخرى بعد قليل.",
+            .portuguese: "Uma ação está em curso. Tenta novamente dentro de instantes.",
+            .swahili: "Kuna hatua inayoendelea. Jaribu tena baada ya muda mfupi."
+        ],
+        "connected_action_failed": [
+            .french: "Action non enregistrée. Vérifie la connexion et la validité de la partie, puis réessaie.",
+            .english: "Action not saved. Check your connection and that the game is still open, then try again.",
+            .arabic: "لم تُحفظ العملية. تحقق من الاتصال وأن اللعبة ما زالت مفتوحة، ثم حاول مجددًا.",
+            .portuguese: "Ação não guardada. Verifica a ligação e se a partida continua aberta, e tenta novamente.",
+            .swahili: "Hatua haijahifadhiwa. Angalia muunganisho na kama mchezo bado uko wazi, kisha jaribu tena."
+        ],
+        "connected_missing": [
+            .french: "Cette partie n’existe plus. Crée une nouvelle partie.",
+            .english: "This game no longer exists. Create a new game.",
+            .arabic: "هذه اللعبة لم تعد موجودة. أنشئ لعبة جديدة.",
+            .portuguese: "Esta partida já não existe. Cria uma nova partida.",
+            .swahili: "Mchezo huu haupo tena. Anzisha mchezo mpya."
+        ],
+        "connected_expired": [
+            .french: "Cette partie a expiré. Crée une nouvelle partie.",
+            .english: "This game has expired. Create a new game.",
+            .arabic: "انتهت صلاحية هذه اللعبة. أنشئ لعبة جديدة.",
+            .portuguese: "Esta partida expirou. Cria uma nova partida.",
+            .swahili: "Muda wa mchezo huu umeisha. Anzisha mchezo mpya."
+        ],
+        "connected_new_required": [
+            .french: "Crée une nouvelle partie pour lancer un morceau connecté.",
+            .english: "Create a new game to play another connected round.",
+            .arabic: "أنشئ لعبة جديدة لتشغيل جولة متصلة أخرى.",
+            .portuguese: "Cria uma nova partida para iniciar outra ronda ligada.",
+            .swahili: "Anzisha mchezo mpya ili kucheza raundi nyingine iliyounganishwa."
+        ],
+        "connected_reconnecting": [
+            .french: "Synchronisation interrompue. Reconnexion en cours…",
+            .english: "Sync interrupted. Reconnecting…",
+            .arabic: "توقفت المزامنة. جارٍ إعادة الاتصال…",
+            .portuguese: "Sincronização interrompida. A restabelecer ligação…",
+            .swahili: "Usawazishaji umekatizwa. Inaunganisha tena…"
+        ],
+        "connected_playback_failed": [
+            .french: "Lecture impossible. Vérifie le buzzer dans les scores.",
+            .english: "Playback failed. Check the buzzer in Scores.",
+            .arabic: "تعذر التشغيل. تحقق من زر الإجابة في النقاط.",
+            .portuguese: "Falha na reprodução. Verifica o botão nas pontuações.",
+            .swahili: "Uchezaji umeshindikana. Angalia kitufe katika alama."
+        ],
+        "connected_sync_pending": [
+            .french: "SYNCHRONISATION…",
+            .english: "SYNCING…",
+            .arabic: "جارٍ المزامنة…",
+            .portuguese: "A SINCRONIZAR…",
+            .swahili: "INASAWAZISHA…"
+        ],
+        "connected_status_finished": [
+            .french: "PARTIE TERMINÉE",
+            .english: "GAME ENDED",
+            .arabic: "انتهت اللعبة",
+            .portuguese: "PARTIDA TERMINADA",
+            .swahili: "MCHEZO UMEKWISHA"
+        ],
+        "connected_status_reconnecting": [
+            .french: "RECONNEXION…",
+            .english: "RECONNECTING…",
+            .arabic: "جارٍ إعادة الاتصال…",
+            .portuguese: "A RESTABELECER LIGAÇÃO…",
+            .swahili: "INAUNGANISHA TENA…"
+        ],
+        "connected_registered_format": [
+            .french: "%d joueur(s) inscrit(s)",
+            .english: "%d registered player(s)",
+            .arabic: "%d لاعب مسجل",
+            .portuguese: "%d jogador(es) inscrito(s)",
+            .swahili: "Wachezaji %d waliosajiliwa"
+        ],
+
         // MARK: - Règles du jeu
         "rules_title": [
             .french: "🎮 RÈGLES DU JEU",

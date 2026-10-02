@@ -220,6 +220,9 @@ struct ContentView: View {
             UIApplication.shared.isIdleTimerDisabled = true
             PlaybackReturnNotification.requestAuthorization()
         }
+        .onChange(of: connectedGame.errorMessage) { _, error in
+            if error != nil { showConnectedGame = true }
+        }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active, awaitingMusicAppReturn else {
                 return
@@ -509,11 +512,17 @@ struct ContentView: View {
     }
 
     private func playTrack(track: Track, fallbackPlatform: MusicPlatform? = nil) {
+        connectedGame.openBuzzerForPlayback {
+            beginPlayback(track: track, fallbackPlatform: fallbackPlatform)
+        }
+    }
+
+    private func beginPlayback(track: Track, fallbackPlatform: MusicPlatform?) {
+        let ticket = connectedGame.playbackTicket
         playbackSourceName = "ZikAfrica"
         showPlaybackReturn = false
         isLeavingApp = false
         showPlaybackTransition = false
-        connectedGame.openBuzzerForPlayback()
 
         Task {
             let installedApps = InstalledMusicApps.current
@@ -552,6 +561,7 @@ struct ContentView: View {
                 ) {
                     launchMusicApp(track: track, platform: platform)
                 } else {
+                    connectedGame.playbackFailed(ticket)
                     showPlaybackTransition = false
                     showMusicAppError = true
                 }
