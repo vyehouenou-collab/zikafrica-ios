@@ -65,6 +65,7 @@ struct ContentView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: geometry.size.width, height: geometry.size.height)
+                    .scaleEffect(pulse ? 1.035 : 0.99)
                     .ignoresSafeArea()
 
                 backgroundOverlay
@@ -861,11 +862,11 @@ struct ActionCard: View {
                 .minimumScaleFactor(0.8)
 
             Text(subtitle)
-                .font(.system(size: 10, weight: .medium))
+                .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .minimumScaleFactor(0.8)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(minHeight: 40, alignment: .top)
         }
         .padding(.vertical, 7)
         .padding(.horizontal, 4)

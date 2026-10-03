@@ -268,7 +268,7 @@ enum Translations {
             .portuguese: "DIGITALIZA", .swahili: "SKANI"
         ],
         "card_scan_subtitle": [
-            .french: "Scanne une carte", .english: "Scan a card", .arabic: "امسح بطاقة",
+            .french: "Une carte", .english: "Scan a card", .arabic: "امسح بطاقة",
             .portuguese: "Digitaliza um cartão", .swahili: "Skani kadi"
         ],
         "card_listen_title": [
@@ -276,7 +276,7 @@ enum Translations {
             .portuguese: "OUVE", .swahili: "SIKILIZA"
         ],
         "card_listen_subtitle": [
-            .french: "La musique se lance", .english: "The music starts", .arabic: "تبدأ الموسيقى",
+            .french: "La musique", .english: "The music starts", .arabic: "تبدأ الموسيقى",
             .portuguese: "A música começa", .swahili: "Muziki unaanza"
         ],
         "card_guess_title": [
@@ -284,7 +284,7 @@ enum Translations {
             .portuguese: "ADIVINHA", .swahili: "KISIA"
         ],
         "card_guess_subtitle": [
-            .french: "Trouve le titre", .english: "Find the title", .arabic: "اكتشف العنوان",
+            .french: "Le titre, l’artiste, l’année", .english: "Find the title", .arabic: "اكتشف العنوان",
             .portuguese: "Descobre o título", .swahili: "Tafuta jina la wimbo"
         ],
 
