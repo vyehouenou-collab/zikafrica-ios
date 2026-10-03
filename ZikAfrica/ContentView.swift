@@ -65,11 +65,9 @@ struct ContentView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: geometry.size.width, height: geometry.size.height)
-                    .scaleEffect(pulse ? 1.035 : 0.99)
                     .ignoresSafeArea()
 
                 backgroundOverlay
-                ambientBackground
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: geometry.size.height < 700 ? 10 : 14) {
@@ -275,39 +273,17 @@ struct ContentView: View {
     }
 
     private var backgroundOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.22)
-
-            LinearGradient(
-                colors: [
-                    .black.opacity(0.84),
-                    .black.opacity(0.18),
-                    .black.opacity(0.38),
-                    .black.opacity(0.88)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        }
-        .allowsHitTesting(false)
-        .ignoresSafeArea()
-    }
-
-    private var ambientBackground: some View {
-        ZStack {
-            Circle()
-                .fill(Color.green.opacity(0.13))
-                .frame(width: 300, height: 300)
-                .blur(radius: 70)
-                .offset(x: pulse ? -120 : -70, y: pulse ? -280 : -220)
-
-            Circle()
-                .fill(Color.yellow.opacity(0.11))
-                .frame(width: 280, height: 280)
-                .blur(radius: 75)
-                .offset(x: pulse ? 130 : 80, y: pulse ? 290 : 230)
-        }
-        .scaleEffect(pulse ? 1.06 : 0.94)
+        // Keep the artwork vivid; controls already have their own opaque backgrounds.
+        LinearGradient(
+            stops: [
+                .init(color: .black.opacity(0.45), location: 0),
+                .init(color: .clear, location: 0.25),
+                .init(color: .clear, location: 0.65),
+                .init(color: .black.opacity(0.65), location: 1)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
         .allowsHitTesting(false)
         .ignoresSafeArea()
     }
@@ -457,9 +433,9 @@ struct ContentView: View {
 
     private var actionCards: some View {
         HStack(spacing: 8) {
-            ActionCard(emoji: "▣", title: L("card_scan_title"), subtitle: L("card_scan_subtitle"))
-            ActionCard(emoji: "🎧", title: L("card_listen_title"), subtitle: L("card_listen_subtitle"))
-            ActionCard(emoji: "🏆", title: L("card_guess_title"), subtitle: L("card_guess_subtitle"))
+            ActionCard(systemIcon: "qrcode.viewfinder", tint: .green, title: L("card_scan_title"), subtitle: L("card_scan_subtitle"))
+            ActionCard(emoji: "🎧", tint: .yellow, title: L("card_listen_title"), subtitle: L("card_listen_subtitle"))
+            ActionCard(emoji: "🏆", tint: .green, title: L("card_guess_title"), subtitle: L("card_guess_subtitle"))
         }
     }
 
@@ -856,35 +832,58 @@ private struct DeezerTrackPreviewResponse: Decodable {
 }
 
 struct ActionCard: View {
-    let emoji: String
+    var systemIcon: String? = nil
+    var emoji: String? = nil
+    let tint: Color
     let title: String
     let subtitle: String
 
     var body: some View {
-        VStack(spacing: 5) {
-            Text(emoji)
-                .font(.title3)
+        VStack(spacing: 4) {
+            ZStack {
+                Circle().fill(tint.opacity(0.13))
+                Circle().stroke(tint.opacity(0.55), lineWidth: 1)
+                if let systemIcon {
+                    Image(systemName: systemIcon)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(tint)
+                } else if let emoji {
+                    Text(emoji).font(.system(size: 20))
+                }
+            }
+            .frame(width: 32, height: 32)
+            .accessibilityHidden(true)
 
             Text(title)
                 .font(.caption.bold())
-                .foregroundColor(.green)
+                .foregroundColor(tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
 
             Text(subtitle)
-                .font(.system(size: 9))
+                .font(.system(size: 10, weight: .medium))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
         }
-        .frame(maxWidth: .infinity)
-        .frame(minHeight: 78)
+        .padding(.vertical, 7)
         .padding(.horizontal, 4)
-        .background(Color.black.opacity(0.88))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: 92)
+        .background(
+            LinearGradient(
+                colors: [tint.opacity(0.14), Color.black.opacity(0.95)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay {
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(Color.green.opacity(0.85), lineWidth: 1.5)
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(tint.opacity(0.9), lineWidth: 1.5)
         }
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -973,10 +972,11 @@ struct SettingsView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 22) {
-                Image("zikafrica_logo")
+                Image("zikafrica_logo_round")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 210)
+                    .accessibilityLabel("ZikAfrica")
 
                 Text(L("settings_title"))
                     .font(.title.bold())
