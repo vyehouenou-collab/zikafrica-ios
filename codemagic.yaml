@@ -15,6 +15,13 @@ workflows:
           - zikafrica_distribution.p12
 
     scripts:
+      - name: Resolve patched Firebase SDK
+        script: |
+          set -euo pipefail
+          xcodebuild -version
+          xcodebuild -resolvePackageDependencies -project ZikAfrica.xcodeproj -scheme ZikAfrica
+          python3 scripts/verify_firebase_security.py
+
       - name: Set up code signing
         script: |
           keychain initialize
