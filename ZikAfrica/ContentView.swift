@@ -79,6 +79,9 @@ struct ContentView: View {
 
                         platformStatus
                         scannerButton
+                            // About 3 cm on a standard iPad; keep the phone and landscape layout unchanged.
+                            .padding(.top, UIDevice.current.userInterfaceIdiom == .pad
+                                     && geometry.size.height > geometry.size.width ? 156 : 0)
                         actionCards
                     }
                     .padding(.horizontal, 16)
