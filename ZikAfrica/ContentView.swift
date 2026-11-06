@@ -145,6 +145,10 @@ struct ContentView: View {
                     ZStack {
                         Color.black.opacity(0.001)
                             .ignoresSafeArea()
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                connectedGame.dismissFirstBuzzAlert()
+                            }
 
                         FirstBuzzPopup(playerName: buzzName) {
                             connectedGame.dismissFirstBuzzAlert()

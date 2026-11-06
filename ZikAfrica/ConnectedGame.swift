@@ -23,6 +23,39 @@ struct ScoreChange {
     let previousScore: Int
 }
 
+// Track server-confirmed buzz events independently of the first-player ranking.
+// The initial snapshot is a baseline, so reopening a game does not replay old alerts.
+struct BuzzAlertTracker {
+    private var observed = Set<String>()
+    private var hasBaseline = false
+    private var pending: [ConnectedBuzz] = []
+
+    mutating func receive(_ buzzes: [ConnectedBuzz]) {
+        for buzz in buzzes {
+            let key = "\(buzz.round):\(buzz.id)"
+            if observed.insert(key).inserted, hasBaseline {
+                pending.append(buzz)
+            }
+        }
+        hasBaseline = true
+    }
+
+    mutating func nextName(round: Int, isOpen: Bool) -> String? {
+        pending.removeAll { $0.round < round }
+        guard isOpen else {
+            pending.removeAll { $0.round == round }
+            return nil
+        }
+        let current = pending.filter { $0.round == round }.sorted {
+            let left = $0.createdAt ?? .distantFuture
+            let right = $1.createdAt ?? .distantFuture
+            return left == right ? $0.id < $1.id : left < right
+        }
+        pending.removeAll { $0.round == round }
+        return current.last?.playerName
+    }
+}
+
 @MainActor
 final class ConnectedGameSession: ObservableObject {
     @Published private(set) var gameCode: String
@@ -43,8 +76,7 @@ final class ConnectedGameSession: ObservableObject {
     private var gameListener: ListenerRegistration?
     private var buzzListener: ListenerRegistration?
     private var generation = 0
-    private var receivedServerSnapshot = false
-    private var lastAlertedBuzzRound = 0
+    private var buzzAlertTracker = BuzzAlertTracker()
     private var history: [ScoreChange] = []
     private var latestBuzzes: [ConnectedBuzz] = []
     private var expiryTask: Task<Void, Never>?
@@ -122,7 +154,7 @@ final class ConnectedGameSession: ObservableObject {
         let reset = { [self] in
             stopListening(); teams = []; history = []; buzzes = []; latestBuzzes = []
             buzzOpen = false; buzzRound = 0; firstBuzzPlayerName = nil; firstBuzzAlertName = nil
-            receivedServerSnapshot = false; lastAlertedBuzzRound = 0
+            buzzAlertTracker = BuzzAlertTracker()
             gameCode = Self.newCode(); pin = Self.newPIN(); isActive = false; isFinished = false
             errorMessage = nil; persist()
             if recreate { createGame() }
@@ -247,11 +279,6 @@ final class ConnectedGameSession: ObservableObject {
                 if round != self.buzzRound { self.firstBuzzAlertName = nil }
                 self.buzzRound = round; self.buzzOpen = !self.isFinished && data["buzzOpen"] as? Bool == true
                 self.firstBuzzPlayerName = data["firstBuzzPlayerName"] as? String
-                if self.synchronized {
-                    if self.receivedServerSnapshot, !self.isFinished, let name = self.firstBuzzPlayerName, round > self.lastAlertedBuzzRound { self.firstBuzzAlertName = name }
-                    if self.firstBuzzPlayerName != nil { self.lastAlertedBuzzRound = round }
-                    self.receivedServerSnapshot = true
-                }
                 self.refreshBuzzOrder()
             }
         }
@@ -274,24 +301,30 @@ final class ConnectedGameSession: ObservableObject {
                 self.teams = updatedTeams
             }
         }
-        buzzListener = ref.collection("buzzes").addSnapshotListener { [weak self] snapshot, error in
+        buzzListener = ref.collection("buzzes").addSnapshotListener(includeMetadataChanges: true) { [weak self] snapshot, error in
             Task { @MainActor in
                 guard let self, self.generation == epoch else { return }
                 if error != nil { self.listenerFailed(); return }
+                guard let snapshot, !snapshot.metadata.isFromCache,
+                      !snapshot.metadata.hasPendingWrites else { return }
                 var updatedBuzzes: [ConnectedBuzz] = []
-                for document in snapshot?.documents ?? [] {
+                for document in snapshot.documents {
                     let data = document.data()
                     let name = data["playerName"] as? String ?? "Joueur"
                     let round = data["round"] as? Int ?? -1
                     let date = (data["createdAt"] as? Timestamp)?.dateValue()
                     updatedBuzzes.append(ConnectedBuzz(id: document.documentID, playerName: name, round: round, createdAt: date))
                 }
+                self.buzzAlertTracker.receive(updatedBuzzes)
                 self.latestBuzzes = updatedBuzzes
                 self.refreshBuzzOrder()
             }
         }
     }
     private func refreshBuzzOrder() {
+        if synchronized, let name = buzzAlertTracker.nextName(round: buzzRound, isOpen: buzzOpen && !isFinished) {
+            firstBuzzAlertName = name
+        }
         buzzes = buzzOpen ? latestBuzzes.filter { $0.round == buzzRound }.sorted {
             let left = $0.createdAt ?? .distantFuture, right = $1.createdAt ?? .distantFuture
             return left == right ? $0.id < $1.id : left < right
