@@ -16,18 +16,18 @@ struct RevealView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 22) {
-                if let flag = track.countryFlag {
-                    VStack(spacing: 2) {
-                        Text(flag).font(.system(size: 88))
-                        if let code = track.countryCode {
-                            Text(code).font(.headline).foregroundStyle(.white)
-                        }
-                    }
-                } else {
+                VStack(spacing: 8) {
                     Image("zikafrica_logo")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 220)
+
+                    if let flag = track.countryFlag, let code = track.countryCode {
+                        VStack(spacing: 2) {
+                            Text(flag).font(.system(size: 36))
+                            Text(code).font(.headline).foregroundStyle(.white)
+                        }
+                    }
                 }
 
                 Text(L("reveal_title"))
