@@ -54,6 +54,7 @@ struct ContentView: View {
     @State private var scanSoundEnabled = false
     @State private var vibrationEnabled = true
     @State private var playbackSourceName = "ZikAfrica"
+    @State private var countryHintStartedAt: Date?
 
     var body: some View {
         GeometryReader { geometry in
@@ -107,6 +108,9 @@ struct ContentView: View {
                    let track = lastTrack {
                     PlaybackReturnView(
                         sourceName: playbackSourceName,
+                        countryFlag: track.countryFlag,
+                        countryCode: track.countryCode,
+                        countryHintStartedAt: countryHintStartedAt,
                         onReplay: {
                             showPlaybackReturn = false
                             playTrack(track: track, fallbackPlatform: selectedPlatform)
@@ -179,6 +183,12 @@ struct ContentView: View {
                     )
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
+        }
+        .onChange(of: showScanner) { _, isOpen in
+            if isOpen { countryHintStartedAt = nil }
+        }
+        .onChange(of: selectedTrack?.id) { _, id in
+            if id != nil { countryHintStartedAt = nil }
         }
         .sheet(item: $selectedTrack) { track in
             RevealView(track: track)
@@ -502,6 +512,7 @@ struct ContentView: View {
     }
 
     private func beginPlayback(track: Track, fallbackPlatform: MusicPlatform?) {
+        countryHintStartedAt = nil
         let ticket = connectedGame.playbackTicket
         playbackSourceName = "ZikAfrica"
         showPlaybackReturn = false
@@ -523,6 +534,7 @@ struct ContentView: View {
 
                 if fullTrackStarted {
                     await MainActor.run {
+                        countryHintStartedAt = Date()
                         showPlaybackTransition = false
                         showPlaybackReturn = true
                     }
@@ -534,6 +546,7 @@ struct ContentView: View {
 
             await MainActor.run {
                 if previewStarted {
+                    countryHintStartedAt = Date()
                     showPlaybackTransition = false
                     showPlaybackReturn = true
                     return
@@ -633,6 +646,7 @@ struct ContentView: View {
             MusicPlayerManager.play(track: track, platform: platform) { opened in
                 DispatchQueue.main.async {
                     if opened {
+                        countryHintStartedAt = Date()
                         awaitingMusicAppReturn = true
                         PlaybackReturnNotification.schedule(platform: platform)
                     } else {
@@ -1103,6 +1117,9 @@ struct PlaybackTransitionView: View {
 
 struct PlaybackReturnView: View {
     let sourceName: String
+    let countryFlag: String?
+    let countryCode: String?
+    let countryHintStartedAt: Date?
     let onReplay: () -> Void
     let onReveal: () -> Void
     let onScanNext: () -> Void
@@ -1133,8 +1150,24 @@ struct PlaybackReturnView: View {
             .zIndex(2)
 
             VStack(spacing: 18) {
-                timerBadge
-                    .padding(.top, 18)
+                VStack(spacing: 6) {
+                    timerBadge
+                    if let flag = countryFlag, let startedAt = countryHintStartedAt {
+                        TimelineView(.animation(minimumInterval: 0.1)) { context in
+                            let elapsed = context.date.timeIntervalSince(startedAt)
+                            if elapsed >= 15 {
+                                VStack(spacing: 2) {
+                                    Text(flag).font(.system(size: 42))
+                                    if let countryCode {
+                                        Text(countryCode).font(.subheadline.bold()).foregroundStyle(.white)
+                                    }
+                                }
+                                    .opacity(0.6 + 0.4 * cos((elapsed - 15) * .pi / 0.8))
+                            }
+                        }
+                    }
+                }
+                .padding(.top, 18)
 
                 Spacer(minLength: 10)
 
